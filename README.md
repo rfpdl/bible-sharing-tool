@@ -20,23 +20,28 @@ public/          ← everything that gets deployed
   index.html     the whole app
   sw.js          offline cache (bump VERSION when shipping changes)
   _headers       Cloudflare headers: security, caching, noindex
-wrangler.toml    Cloudflare Pages project config
+wrangler.toml    Cloudflare Workers config (static assets from public/)
 ```
 
 ## Run locally
 
 ```sh
-npx wrangler pages dev        # http://localhost:8788
+npx wrangler dev              # http://localhost:8787
 ```
 
-## Deploy to Cloudflare Pages
+## Deploy to Cloudflare
+
+Connected to GitHub: Cloudflare dashboard → Workers & Pages → Create → Import a repository → `rfpdl/bible-sharing-tool`.
+Leave the build command empty and keep the deploy command `npx wrangler deploy`. Every push to `main` redeploys.
+
+Or from your machine:
 
 ```sh
 npx wrangler login            # first time only
-npx wrangler pages deploy     # creates the "bible-sharing-tool" project on first run
+npx wrangler deploy
 ```
 
-The site will be at `https://bible-sharing-tool.pages.dev` (or the name Cloudflare assigns).
+The site will be at `https://bible-sharing-tool.<your-subdomain>.workers.dev`.
 
 ## Install on your phone
 

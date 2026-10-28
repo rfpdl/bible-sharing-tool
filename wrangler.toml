@@ -1,3 +1,6 @@
 name = "bible-sharing-tool"
-pages_build_output_dir = "./public"
 compatibility_date = "2026-10-01"
+
+# Static site only: everything in public/ is served as-is (including _headers).
+[assets]
+directory = "./public"
