@@ -6,6 +6,13 @@ Static PWA: no backend, studies are saved in the browser's localStorage, share l
 - Verse text: KJV / WEB / WEBBE (public domain) from bible-api.com, cached on the device after first view
 - Other translations (NIV, ESV, NASB…): "Open in" button links to Bible.com
 
+<p align="center">
+  <img src="docs/home.png" width="200" alt="Home: your studies">
+  <img src="docs/editor.png" width="200" alt="Editor: passages, readers and notes">
+  <img src="docs/present-dark.png" width="200" alt="Reading a passage (dark)">
+  <img src="docs/present-light.png" width="200" alt="Reading a passage (light)">
+</p>
+
 ## Files
 
 ```
