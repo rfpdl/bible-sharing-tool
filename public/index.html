@@ -159,7 +159,7 @@ html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
 .fan-card .n { position: absolute; top: 14px; right: 14px; font: 600 11px var(--sans); color: var(--accent); letter-spacing: .08em; }
 @keyframes fanIn { from { opacity: 0; transform: translateX(-50%) translateY(30px) rotate(0); } }
 
-.section { display: flex; align-items: baseline; justify-content: space-between; margin: 36px 2px 12px; }
+.section { scroll-margin-top: 72px; display: flex; align-items: baseline; justify-content: space-between; margin: 36px 2px 12px; }
 .section h2 { font: 600 13px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
 .section span { font-size: 13px; color: var(--muted); }
 
@@ -190,7 +190,21 @@ html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
   font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
   background: var(--accent-soft); color: var(--accent-ink); letter-spacing: -.005em;
 }
-.empty-note { text-align: center; color: var(--muted); font-size: 14px; margin-top: 4px; }
+.privacy-chip {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 8px 14px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 500; color: var(--text-2); text-decoration: none;
+  background: var(--card); border: 1px solid var(--stroke); transition: border-color .2s, color .2s;
+}
+.privacy-chip:hover { border-color: var(--stroke-2); color: var(--text); }
+.privacy-chip .ic { width: 16px; height: 16px; color: var(--accent); }
+.hero .privacy-chip { display: flex; width: fit-content; }
+.facts { display: grid; gap: 16px; }
+.fact { display: flex; gap: 12px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
+.fact .ic { color: var(--accent); width: 18px; height: 18px; margin-top: 2px; }
+.fact b { color: var(--text); font-weight: 600; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.btn-row .btn { flex: 1; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- forms ---------- */
 input, textarea, select {
@@ -728,6 +742,11 @@ const ICONS = {
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
   pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
   list: '<path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
+  eyeoff: '<path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.3 4.3M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',
+  upload: '<path d="M12 15V3M7 8l5-5 5 5M5 21h14"/>',
 };
 const icon = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 
@@ -739,7 +758,7 @@ function ago(t) {
   if (m < 10080) return Math.floor(m / 1440) + 'd ago';
   return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
-const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+const plural = (n, w, many = w + 's') => n + ' ' + (n === 1 ? w : many);
 const pad = n => String(n).padStart(2, '0');
 
 let toastTimer;
@@ -787,7 +806,7 @@ function viewHome() {
         <div class="fan-card" style="--x:${f.x};--r:${f.r};--d:${f.d}"><span class="n">${pad(f.n)}</span><b>${f.ref}</b><span>${f.text}</span></div>`).join('')}
       </div>`}
       <button class="btn primary lg${lists.length ? '' : ' block'}" data-act="new">${icon('plus')} New study</button>
-      ${lists.length ? '' : `<p class="empty-note" style="margin-top:14px">Your studies are saved on this device.</p>`}
+      <a class="privacy-chip" href="#/settings/privacy">${icon('lock')} Private: your studies stay on this device</a>
     </section>
 
     ${lists.length ? `
@@ -828,9 +847,23 @@ function viewSettings() {
       <p class="hint">Opens the passage on Bible.com. Use this for NIV, ESV, NASB and other licensed translations.</p>
     </div>
 
-    <div class="section"><h2>About</h2></div>
-    <div class="panel muted" style="font-size:14px;line-height:1.6">
-      Your studies are saved only in this browser. Share links contain the whole study, so anyone with the link can read it.
+    <div class="section" id="privacy"><h2>Privacy &amp; your data</h2></div>
+    <div class="panel facts">
+      <div class="fact">${icon('lock')}<div><b>Everything stays on this device.</b> No account, no server, no database. Your studies, notes and readers’ names are never sent anywhere, so nobody (including us) can see them.</div></div>
+      <div class="fact">${icon('book')}<div><b>Verse text comes from bible-api.com.</b> Only the reference (like “Philippians 4:6-7”) is sent, never your notes. “Open in” takes you to Bible.com only when you tap it.</div></div>
+      <div class="fact">${icon('share')}<div><b>Share links carry the study inside the link.</b> Nothing is uploaded, but anyone you send the link to can read it, so keep private notes out of studies you share.</div></div>
+      <div class="fact">${icon('eyeoff')}<div><b>No ads, no analytics, no tracking.</b></div></div>
+    </div>
+
+    <div class="section"><h2>Back up your studies</h2><span>${plural(db.lists.length, 'study', 'studies')}</span></div>
+    <div class="panel">
+      <p style="margin:0;font-size:14.5px;line-height:1.55;color:var(--text-2)">Since nothing is stored online, <b style="color:var(--text)">you keep your own data</b>. Clearing your browser data, uninstalling the app, or changing phones will remove your studies. Save a backup file now and then, and import it on any device.</p>
+      <div class="btn-row">
+        <button class="btn" data-act="export"${db.lists.length ? '' : ' disabled'}>${icon('download')} Export backup</button>
+        <label class="btn" for="importFile">${icon('upload')} Import backup</label>
+        <input type="file" id="importFile" class="visually-hidden" accept="application/json,.json">
+      </div>
+      <p class="hint">${s.lastBackup ? 'Last backup ' + ago(s.lastBackup) + '.' : 'No backup yet.'} Importing adds to your studies; it never deletes any.</p>
     </div>
   </div>`;
 }
@@ -895,7 +928,7 @@ function viewShared() {
     </header>
     <div class="badge">${icon('share')} Shared with you</div>
     <h1 class="page-title" style="font-size:clamp(36px,9vw,52px)">${esc(list.title)}</h1>
-    <div class="subline">${plural(list.items.length, 'passage')}</div>
+    <div class="subline">${plural(list.items.length, 'passage')} · came inside the link, nothing was uploaded</div>
     <div style="display:flex;gap:8px">
       <a class="btn primary lg" style="flex:1" href="#/present/shared/0">${icon('play')} Present</a>
       <button class="btn lg" style="flex:1" data-act="saveShared">${icon('save')} Save copy</button>
@@ -1072,6 +1105,54 @@ function applyMd(ta, kind) {
   ta.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+// ---------- Backup (export / import a JSON file) ----------
+function exportBackup() {
+  const data = { app: 'bible-sharing-tool', version: 1, exported: new Date().toISOString(), lists: db.lists };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bible-sharing-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  db.settings.lastBackup = Date.now(); save();
+  route();
+  toast('Backup saved');
+}
+
+const num = v => (Number.isInteger(v) && v > 0 ? v : null);
+
+// Rebuilds each study from known fields only, so a bad or edited file can't inject anything odd.
+function cleanList(l) {
+  if (!l || !Array.isArray(l.items)) return null;
+  const items = [];
+  for (const it of l.items) {
+    const r = it && it.ref;
+    if (!r || !BOOK_BY_ID.has(r.b) || !num(r.c1)) continue;
+    items.push({
+      id: String(it.id || uid()),
+      ref: { b: r.b, c1: r.c1, v1: num(r.v1), c2: num(r.c2) || r.c1, v2: num(r.v2) },
+      reader: String(it.reader || ''), note: String(it.note || ''),
+    });
+  }
+  return { id: String(l.id || uid()), title: String(l.title || ''), notes: String(l.notes || ''), items, updated: Number(l.updated) || Date.now() };
+}
+
+async function importBackup(file) {
+  let data;
+  try { data = JSON.parse(await file.text()); } catch (e) { return toast('That file isn’t a backup'); }
+  const incoming = (Array.isArray(data) ? data : data && data.lists || []).map(cleanList).filter(Boolean);
+  if (!incoming.length) return toast('No studies found in that file');
+  let added = 0, updated = 0;
+  for (const l of incoming) {
+    const i = db.lists.findIndex(x => x.id === l.id);
+    if (i === -1) { db.lists.push(l); added++; }
+    else if (l.updated > db.lists[i].updated) { db.lists[i] = l; updated++; }
+  }
+  save();
+  route();
+  toast(added || updated ? `Imported ${plural(added, 'new study', 'new studies')}${updated ? `, updated ${updated}` : ''}` : 'Already up to date');
+}
+
 // ---------- Router ----------
 let current = { view: 'home' };
 let pendingFocus = null;  // element to focus right after the next render (no timer, so typing never races it)
@@ -1089,6 +1170,7 @@ function route() {
     current = { view }; viewShared();
   } else if (view === 'settings') {
     current = { view }; viewSettings();
+    if (id) document.getElementById(id)?.scrollIntoView({ block: 'start' });
   } else if (view === 'present' && list && list.items.length) {
     const idx = Math.min(Math.max(parseInt(i, 10) || 0, 0), list.items.length - 1);
     current = { view, list, idx }; viewPresent(list, idx);
@@ -1163,6 +1245,7 @@ app.addEventListener('click', async e => {
   } else if (act === 'prev') go(current.idx - 1);
   else if (act === 'next') go(current.idx + 1);
   else if (act === 'goto') go(idx);
+  else if (act === 'export') exportBackup();
   else if (act === 'jump') toggleSheet(true);
   else if (act === 'closeJump') toggleSheet(false);
 });
@@ -1185,6 +1268,7 @@ app.addEventListener('input', e => {
 
 app.addEventListener('change', e => {
   const el = e.target;
+  if (el.id === 'importFile') { if (el.files[0]) importBackup(el.files[0]); el.value = ''; return; }
   if (el.dataset.field !== 'ref') return;
   const it = current.list.items[+el.dataset.idx];
   const r = parseRefs(el.value).refs[0];

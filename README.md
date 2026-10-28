@@ -6,6 +6,17 @@ Prepare a list of Bible passages, add notes, and step through them while reading
 
 Static PWA: no backend, studies are saved in the browser's localStorage, share links carry the whole study in the URL.
 
+## Privacy
+
+Everything runs in your browser. There is no account, no server and no database, so your studies, notes and readers' names never leave your device, and nobody (including me) can see them.
+
+- **Verse text** is fetched from [bible-api.com](https://bible-api.com). Only the reference (e.g. "Philippians 4:6-7") is sent, never your notes.
+- **"Open in"** goes to Bible.com, and only when you tap it.
+- **Share links** carry the study inside the link (after the `#`, which browsers never send to a server). Nothing is uploaded, but anyone you send the link to can read it.
+- **No ads, no analytics, no tracking.** Fonts are self-hosted; the [Content Security Policy](public/_headers) only allows the app's own files and bible-api.com.
+
+**You keep your own data.** Clearing browser data, uninstalling, or switching phones removes your studies. Use **Settings → Export backup** now and then, and **Import backup** to restore or move to another device.
+
 - Verse text: KJV / WEB / WEBBE (public domain) from bible-api.com, cached on the device after first view
 - Other translations (NIV, ESV, NASB…): "Open in" button links to Bible.com
 
