@@ -1,5 +1,5 @@
 // Caches the app shell so Bible Sharing Tool opens offline. Bump VERSION when shipping changes.
-const VERSION = 'bst-v13';
+const VERSION = 'bst-v14';
 // The page is cached under './' only: Cloudflare redirects /index.html to /, and a cached
 // redirect can't be used to answer a navigation, which would break opening the app offline.
 const PAGE = './';
