@@ -1,7 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#2f5d8a"/>
-  <rect x="150" y="128" width="236" height="300" rx="22" fill="#9fc0e0"/>
-  <rect x="126" y="104" width="236" height="300" rx="22" fill="#fff"/>
-  <rect x="232" y="150" width="24" height="150" rx="6" fill="#2f5d8a"/>
-  <rect x="194" y="188" width="100" height="24" rx="6" fill="#2f5d8a"/>
+  <defs>
+    <radialGradient id="bg" cx="28%" cy="12%" r="100%">
+      <stop offset="0" stop-color="#26305a"/><stop offset=".55" stop-color="#121731"/><stop offset="1" stop-color="#090b14"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="64%" r="44%">
+      <stop offset="0" stop-color="#f2b35a" stop-opacity=".34"/><stop offset="1" stop-color="#f2b35a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcdc9c"/><stop offset=".55" stop-color="#f2b35a"/><stop offset="1" stop-color="#dc8a33"/>
+    </linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a3adf7"/><stop offset="1" stop-color="#6672c9"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#glow)"/>
+  <!-- three readers, gathered in an arc -->
+  <circle cx="158" cy="200" r="36" fill="url(#head)" opacity=".82"/>
+  <circle cx="256" cy="156" r="40" fill="url(#head)"/>
+  <circle cx="354" cy="200" r="36" fill="url(#head)" opacity=".82"/>
+  <!-- around one open Bible -->
+  <path d="M248 292C200 262 150 258 96 272v130c54-14 104-10 152 20z" fill="url(#gold)"/>
+  <path d="M264 292c48-30 98-34 152-20v130c-54-14-104-10-152 20z" fill="url(#gold)"/>
 </svg>
