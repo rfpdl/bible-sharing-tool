@@ -1,6 +1,9 @@
 // Caches the app shell so Bible Sharing Tool opens offline. Bump VERSION when shipping changes.
-const VERSION = 'bst-v9';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png',
+const VERSION = 'bst-v11';
+// The page is cached under './' only: Cloudflare redirects /index.html to /, and a cached
+// redirect can't be used to answer a navigation, which would break opening the app offline.
+const PAGE = './';
+const SHELL = [PAGE, './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png',
   './fonts/inter-normal.woff2', './fonts/newsreader-normal.woff2', './fonts/newsreader-italic.woff2'];
 
 self.addEventListener('install', e => {
@@ -17,7 +20,7 @@ self.addEventListener('activate', e => {
 
 // Pages: network first so a new deploy shows up immediately, cache when offline.
 // Other same-origin files: cache first, refreshed in the background.
-// Verse text (bible-api.com) is cached by the page in localStorage, so it passes through here.
+// Verse text (bible.helloao.org) is cached by the page in localStorage, so it passes through here.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
@@ -26,10 +29,10 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(e.request)
         .then(res => {
-          if (res.ok) caches.open(VERSION).then(c => c.put('./index.html', res.clone()));
+          if (res.ok && !res.redirected) caches.open(VERSION).then(c => c.put(PAGE, res.clone()));
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(PAGE))
     );
     return;
   }
@@ -38,7 +41,7 @@ self.addEventListener('fetch', e => {
     caches.open(VERSION).then(async cache => {
       const cached = await cache.match(e.request, { ignoreSearch: true });
       const fresh = fetch(e.request)
-        .then(res => { if (res.ok) cache.put(e.request, res.clone()); return res; })
+        .then(res => { if (res.ok && !res.redirected) cache.put(e.request, res.clone()); return res; })
         .catch(() => cached);
       return cached || fresh;
     })

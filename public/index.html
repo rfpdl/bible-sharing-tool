@@ -202,6 +202,15 @@ html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
 .fact { display: flex; gap: 12px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
 .fact .ic { color: var(--accent); width: 18px; height: 18px; margin-top: 2px; }
 .fact b { color: var(--text); font-weight: 600; }
+.foot { display: flex; justify-content: center; gap: 10px; margin-top: 48px; font-size: 13px; color: var(--muted); }
+.foot a { color: var(--muted); text-decoration: none; }
+.foot a:hover { color: var(--text); text-decoration: underline; }
+.legal h2 { font: 500 30px/1.15 var(--serif); letter-spacing: -.02em; margin: 40px 0 6px; }
+.legal h3 { font: 650 15px var(--sans); margin: 22px 0 4px; }
+.legal p, .legal li { color: var(--text-2); font-size: 15.5px; line-height: 1.65; }
+.legal p { margin: 0 0 8px; }
+.legal ul { margin: 8px 0; padding-left: 20px; display: grid; gap: 8px; }
+.legal b { color: var(--text); font-weight: 600; }
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 .btn-row .btn { flex: 1; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -606,13 +615,15 @@ function label(r, full) {
 }
 
 // ---------- Scripture sources ----------
-// Public-domain text shown inline, fetched from bible-api.com.
+// Public-domain text shown inline, fetched from the Free Use Bible API (bible.helloao.org).
+// `api` is that API's translation id.
 const INLINE = [
-  { id: 'kjv', name: 'KJV', desc: 'King James Version — classic, traditional wording' },
-  { id: 'web', name: 'WEB', desc: 'World English Bible — modern English, easy to read aloud' },
-  { id: 'webbe', name: 'WEBBE', desc: 'World English Bible, British edition' },
+  { id: 'bsb', api: 'BSB', name: 'BSB', desc: 'Berean Standard Bible — modern and accurate, reads much like the NIV' },
+  { id: 'web', api: 'ENGWEBP', name: 'WEB', desc: 'World English Bible — modern English, easy to read aloud' },
+  { id: 'kjv', api: 'eng_kjv', name: 'KJV', desc: 'King James Version — classic, traditional wording' },
   { id: 'off', name: 'Hide text', desc: 'Show only the reference and use “Open in” for the text' },
 ];
+const TEXT_API = 'https://bible.helloao.org/api';
 // YouVersion (bible.com) version IDs, used only for "Open in" links.
 const YV = [
   { id: '111', abbr: 'NIV' },
@@ -640,10 +651,6 @@ function yvUrl(r) {
   return `https://www.bible.com/bible/${v.id}/${p}${v.abbr ? '.' + v.abbr : ''}`;
 }
 
-function apiQuery(r) {
-  const name = r.b === 'SNG' ? 'Song of Solomon' : BOOK_BY_ID.get(r.b).name;
-  return name + ' ' + suffix(r);
-}
 
 // ---------- Storage (localStorage only; older "versedeck" keys are migrated) ----------
 const KEY = 'bst:v1', OLD_KEY = 'versedeck:v1';
@@ -656,15 +663,39 @@ function readJson(...keys) {
   return null;
 }
 
+// Passages already shown are kept on the device, so prepared studies work offline.
+// Keys are "<translation>|<BOOK> <ref>"; entries from the old source used other keys and are simply never hit.
 let textCache = readJson(TEXT_KEY, OLD_TEXT_KEY) || {};
+const chapterCache = new Map();
+
+// The API returns whole chapters; each verse is a list of strings and {text} / {noteId} / {lineBreak} parts.
+async function getChapter(api, book, c) {
+  const k = `${api}/${book}/${c}`;
+  if (!chapterCache.has(k)) {
+    chapterCache.set(k, fetch(`${TEXT_API}/${k}.json`).then(res => {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(j => j.chapter.content.filter(x => x.type === 'verse').map(x => ({
+      c, v: x.number,
+      t: x.content.map(p => (typeof p === 'string' ? p : p.text || '')).join(' ').replace(/\s+/g, ' ').trim(),
+    }))).catch(err => { chapterCache.delete(k); throw err; }));
+  }
+  return chapterCache.get(k);
+}
 
 async function getPassage(r, t) {
-  const key = t + '|' + apiQuery(r);
+  const key = t + '|' + r.b + ' ' + suffix(r);
   if (textCache[key]) return textCache[key];
-  const res = await fetch(`https://bible-api.com/${encodeURIComponent(apiQuery(r))}?translation=${t}`);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const j = await res.json();
-  const verses = (j.verses || []).map(v => ({ c: v.chapter, v: v.verse, t: v.text.trim() }));
+  const api = INLINE.find(x => x.id === t).api;
+  const verses = [];
+  for (let c = r.c1; c <= r.c2; c++) {
+    for (const v of await getChapter(api, r.b, c)) {
+      if (r.v1 != null && c === r.c1 && v.v < r.v1) continue;
+      if (r.v1 != null && c === r.c2 && v.v > (r.v2 ?? (r.c2 === r.c1 ? r.v1 : Infinity))) continue;
+      verses.push(v);
+    }
+  }
+  if (!verses.length) throw new Error('No verses found');
   textCache[key] = verses;
   try { localStorage.setItem(TEXT_KEY, JSON.stringify(textCache)); } catch (e) {}
   return verses;
@@ -676,8 +707,15 @@ save();
 
 function loadDb() {
   const d = readJson(KEY, OLD_KEY);
-  if (d && Array.isArray(d.lists)) return d;
-  return { lists: [], settings: { inline: 'kjv', yv: '111', yvCustom: '' } };
+  if (d && Array.isArray(d.lists)) {
+    // v2 switched the text source and made BSB the default: move people off the old KJV default once.
+    if (!d.settings.textV) {
+      d.settings.inline = { kjv: 'bsb', webbe: 'web' }[d.settings.inline] || d.settings.inline;
+      d.settings.textV = 2;
+    }
+    return d;
+  }
+  return { lists: [], settings: { inline: 'bsb', yv: '111', yvCustom: '', textV: 2 } };
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -819,6 +857,56 @@ function viewHome() {
           <span class="go">${icon('arrow')}</span>
         </a>`).join('')}
       </div>` : ''}
+    <footer class="foot"><a href="#/legal">Privacy &amp; Terms</a><span>·</span><a href="#/settings/privacy">Back up your studies</a></footer>
+  </div>`;
+}
+
+const LEGAL_UPDATED = '28 October 2026';
+
+function viewLegal() {
+  app.innerHTML = `<div class="wrap legal">
+    <header class="bar"><a class="btn sm ghost" href="#/">${icon('back')} Back</a></header>
+    <h1 class="page-title" style="animation:rise .5s var(--ease) both">Privacy &amp; Terms</h1>
+    <p class="subline">Last updated ${LEGAL_UPDATED}. Written in plain language.</p>
+
+    <div class="panel" style="border-color:var(--accent);background:var(--accent-soft)">
+      <p style="margin:0"><b>The short version:</b> your studies stay on your device. Bible Sharing Tool has no accounts and no database, and it doesn’t collect, store or sell anything about you.</p>
+    </div>
+
+    <h2>Privacy</h2>
+    <h3>What is stored, and where</h3>
+    <p>Your studies, notes, readers’ names and settings are saved in your browser’s local storage, on this device only. Passages you’ve opened are kept there too so they work offline. There is no copy anywhere else.</p>
+    <h3>What leaves your device</h3>
+    <ul>
+      <li><b>Bible text:</b> to show a passage, the app asks the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a> for the translation and chapter (for example “BSB, Philippians 4”). Your notes and names are never sent.</li>
+      <li><b>“Open in” button:</b> opens the passage on Bible.com, only when you tap it. Bible.com’s own privacy policy applies there.</li>
+      <li><b>Normal web traffic:</b> like any website, the servers that deliver the app (Cloudflare) and the Bible API receive your IP address and basic request details so they can respond. They don’t see your studies.</li>
+    </ul>
+    <h3>What we don’t do</h3>
+    <p>No accounts, no cookies, no ads, no analytics, no tracking.</p>
+    <h3>Share links</h3>
+    <p>A share link carries the study inside the link itself (after the “#”, which browsers don’t send to servers). Nothing is uploaded, but anyone who has the link can read the study, including its notes, so think before sharing private notes.</p>
+    <h3>Deleting your data</h3>
+    <p>Delete a study in the app, or clear this site’s data in your browser settings. Since we hold nothing, there is nothing for us to delete.</p>
+
+    <h2>Terms</h2>
+    <ul>
+      <li><b>Free to use</b> for personal and group Bible study.</li>
+      <li><b>Provided as is.</b> The app may change or be unavailable at times, and comes with no warranty.</li>
+      <li><b>Keep your own backups.</b> Your studies live only on your device, so they can be lost if browser data is cleared or a device is lost. Use <a href="#/settings/privacy">Export backup</a> now and then. We can’t recover lost studies.</li>
+      <li><b>Your content is yours,</b> and you’re responsible for what you put in studies you share.</li>
+    </ul>
+
+    <h2>Bible text &amp; credits</h2>
+    <ul>
+      <li><b>BSB</b>: Berean Standard Bible, public domain (<a href="https://berean.bible" target="_blank" rel="noopener">berean.bible</a>).</li>
+      <li><b>WEB</b>: World English Bible, public domain (<a href="https://worldenglish.bible" target="_blank" rel="noopener">worldenglish.bible</a>).</li>
+      <li><b>KJV</b>: King James Version, public domain (outside the UK, where it is under Crown patent).</li>
+      <li>Delivered by the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a>.</li>
+      <li>NIV, ESV, NKJV, NASB and other translations are copyrighted by their publishers. This app doesn’t copy them; “Open in” shows them on Bible.com under its terms.</li>
+      <li>Fonts: Inter and Newsreader, SIL Open Font License.</li>
+    </ul>
+    <p class="hint">If this page changes, the date at the top changes too.</p>
   </div>`;
 }
 
@@ -850,9 +938,10 @@ function viewSettings() {
     <div class="section" id="privacy"><h2>Privacy &amp; your data</h2></div>
     <div class="panel facts">
       <div class="fact">${icon('lock')}<div><b>Everything stays on this device.</b> No account, no server, no database. Your studies, notes and readers’ names are never sent anywhere, so nobody (including us) can see them.</div></div>
-      <div class="fact">${icon('book')}<div><b>Verse text comes from bible-api.com.</b> Only the reference (like “Philippians 4:6-7”) is sent, never your notes. “Open in” takes you to Bible.com only when you tap it.</div></div>
+      <div class="fact">${icon('book')}<div><b>Verse text comes from the Free Use Bible API.</b> Only the translation and chapter (like “BSB, Philippians 4”) are sent, never your notes. “Open in” takes you to Bible.com only when you tap it.</div></div>
       <div class="fact">${icon('share')}<div><b>Share links carry the study inside the link.</b> Nothing is uploaded, but anyone you send the link to can read it, so keep private notes out of studies you share.</div></div>
       <div class="fact">${icon('eyeoff')}<div><b>No ads, no analytics, no tracking.</b></div></div>
+      <a class="btn sm ghost" href="#/legal" style="justify-self:start">Read the full Privacy &amp; Terms ${icon('arrow')}</a>
     </div>
 
     <div class="section"><h2>Back up your studies</h2><span>${plural(db.lists.length, 'study', 'studies')}</span></div>
@@ -975,8 +1064,12 @@ function viewPresent(list, idx) {
       <div class="eyebrow">Passage ${pad(idx + 1)} · ${pad(n)}</div>
       <h1 class="ref-title">${esc(book)} <em>${esc(suffix(it.ref).replace(/-/g, '–'))}</em></h1>
       <div class="pills">
-        <select class="pill" data-setting="inline" aria-label="Translation">
+        <select class="pill" data-setting="inline" aria-label="Translation shown here" title="Translation shown here">
           ${INLINE.map(t => `<option value="${t.id}"${inline === t.id ? ' selected' : ''}>${t.name}</option>`).join('')}
+        </select>
+        <select class="pill" data-setting="yv" aria-label="Translation for the Open in button" title="Translation for the “Open in” button">
+          ${YV.map(v => `<option value="${v.id}"${db.settings.yv === v.id ? ' selected' : ''}>↗ ${v.abbr}</option>`).join('')}
+          ${db.settings.yv === 'custom' ? `<option value="custom" selected>↗ Other</option>` : ''}
         </select>
         ${it.reader ? `<span class="pill reader">${icon('user')}${esc(it.reader)}</span>` : ''}
       </div>
@@ -1168,6 +1261,8 @@ function route() {
     current = { view, list }; viewEdit(list);
   } else if (view === 'shared' && shared) {
     current = { view }; viewShared();
+  } else if (view === 'legal') {
+    current = { view }; viewLegal();
   } else if (view === 'settings') {
     current = { view }; viewSettings();
     if (id) document.getElementById(id)?.scrollIntoView({ block: 'start' });
