@@ -68,3 +68,7 @@ Open the site, then:
 ## Credits
 
 Fonts: [Inter](https://rsms.me/inter/) and [Newsreader](https://github.com/productiontype/Newsreader), both SIL Open Font License, self-hosted in `public/fonts`.
+
+## License
+
+The code is [MIT](LICENSE): use it, change it, host your own copy for your church or group. The fonts keep their own SIL Open Font License, and the Bible text (BSB, WEB, KJV) is public domain.
