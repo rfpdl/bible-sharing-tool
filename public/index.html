@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bible Sharing">
+<meta name="theme-color" content="#f7f5f0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a0a0d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preload" href="fonts/inter-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/newsreader-normal.woff2" as="font" type="font/woff2" crossorigin>
+<title>Bible Sharing Tool</title>
+<style>
+@font-face { font-family: "Inter"; src: url(fonts/inter-normal.woff2) format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url(fonts/newsreader-normal.woff2) format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Newsreader"; src: url(fonts/newsreader-italic.woff2) format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; }
+
+:root {
+  --bg: #f7f5f0; --glass: rgba(255,255,255,.72); --card: rgba(255,255,255,.78); --card-hi: #ffffff;
+  --stroke: rgba(23,22,26,.08); --stroke-2: rgba(23,22,26,.15); --field: rgba(23,22,26,.045);
+  --text: #17161a; --text-2: #4a4740; --muted: #8a857b;
+  --accent: #b7791f; --accent-ink: #8a5a12; --accent-soft: rgba(183,121,31,.12); --violet: #6d5ae6;
+  --btn-bg: #17161a; --btn-text: #ffffff; --btn-glow: rgba(23,22,26,.18);
+  --solid: #ffffff; --glow-1: rgba(109,90,230,.16); --glow-2: rgba(240,170,80,.22); --grain: .035;
+  --danger: #c0362c; --shadow: 0 1px 2px rgba(23,22,26,.04), 0 12px 32px -12px rgba(23,22,26,.14);
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: "Newsreader", ui-serif, "New York", Georgia, serif;
+  --ease: cubic-bezier(.2,.8,.2,1);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0d; --glass: rgba(18,18,23,.66); --card: rgba(255,255,255,.035); --card-hi: rgba(255,255,255,.06);
+    --stroke: rgba(255,255,255,.07); --stroke-2: rgba(255,255,255,.14); --field: rgba(255,255,255,.05);
+    --text: #f3f1ec; --text-2: #c2beb6; --muted: #86827b;
+    --accent: #f2b35a; --accent-ink: #f6c47a; --accent-soft: rgba(242,179,90,.12); --violet: #9b8cff;
+    --btn-bg: linear-gradient(135deg, #f8cd85, #e8963a); --btn-text: #1c1206; --btn-glow: rgba(242,179,90,.28);
+    --solid: #18181e; --glow-1: rgba(124,108,246,.20); --glow-2: rgba(242,179,90,.11); --grain: .05;
+    --danger: #ff8a80; --shadow: 0 20px 40px -20px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  min-height: 100vh; background: var(--bg); color: var(--text);
+  font: 16px/1.5 var(--sans); font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
+}
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 10% -5%, var(--glow-1), transparent 70%),
+    radial-gradient(55% 40% at 100% 0%, var(--glow-2), transparent 70%),
+    radial-gradient(70% 50% at 50% 110%, var(--glow-1), transparent 70%);
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#app { position: relative; z-index: 1; }
+::selection { background: var(--accent-soft); }
+a { color: var(--accent-ink); }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 120px; }
+.ic { width: 20px; height: 20px; flex: none; }
+.muted { color: var(--muted); }
+
+/* ---------- buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 18px;
+  border-radius: 14px; border: 1px solid var(--stroke); background: var(--card); color: var(--text);
+  font: 600 15px var(--sans); letter-spacing: -.01em; cursor: pointer; text-decoration: none; white-space: nowrap;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  transition: transform .15s var(--ease), background .2s, border-color .2s, box-shadow .2s;
+}
+.btn:hover { border-color: var(--stroke-2); background: var(--card-hi); }
+.btn:active { transform: scale(.96); }
+.btn:disabled, .btn.disabled { opacity: .35; pointer-events: none; }
+.btn.primary {
+  background: var(--btn-bg); color: var(--btn-text); border-color: transparent;
+  box-shadow: 0 8px 24px -8px var(--btn-glow), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.btn.primary:hover { box-shadow: 0 12px 30px -8px var(--btn-glow), inset 0 1px 0 rgba(255,255,255,.22); transform: translateY(-1px); }
+.btn.ghost { background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.btn.ghost:hover { background: var(--field); }
+.btn.icon { width: 44px; padding: 0; border-radius: 14px; }
+.btn.sm { min-height: 38px; padding: 0 14px; font-size: 14px; border-radius: 12px; }
+.btn.icon.sm { width: 38px; padding: 0; }
+.btn.xs { min-height: 32px; width: 32px; padding: 0; border-radius: 10px; }
+.btn.xs .ic, .btn.sm .ic { width: 18px; height: 18px; }
+.btn.lg { min-height: 54px; padding: 0 26px; font-size: 16px; border-radius: 16px; }
+.btn.danger { color: var(--danger); }
+.btn.block { width: 100%; }
+
+/* ---------- top bar ---------- */
+.bar {
+  position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px;
+  margin: 0 -20px; padding: calc(10px + env(safe-area-inset-top)) 20px 10px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+}
+.bar .grow { flex: 1; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -.02em; }
+.brand img { width: 30px; height: 30px; border-radius: 9px; box-shadow: var(--shadow); }
+
+/* ---------- home ---------- */
+.hero { padding: 36px 0 8px; animation: rise .6s var(--ease) both; }
+.hero h1 {
+  font: 500 clamp(40px, 10.5vw, 64px)/1.02 var(--serif); letter-spacing: -.035em; margin: 0 0 16px;
+  font-optical-sizing: auto;
+}
+.hero h1 em {
+  font-style: italic; font-weight: 400; padding-right: .06em;
+  background: linear-gradient(100deg, var(--accent) 10%, var(--violet) 90%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero p { color: var(--text-2); font-size: 17px; line-height: 1.55; max-width: 30em; margin: 0 0 28px; }
+.fan { position: relative; height: 180px; margin: 4px 0 24px; }
+.fan-card {
+  position: absolute; left: 50%; top: 18px; width: min(210px, 54vw); padding: 16px 16px 18px;
+  border-radius: 18px; background: var(--solid); border: 1px solid var(--stroke-2);
+  box-shadow: 0 18px 40px -18px rgba(0,0,0,.45);
+  transform: translateX(calc(-50% + var(--x))) rotate(var(--r)); transform-origin: 50% 120%;
+  animation: fanIn .9s var(--ease) both; animation-delay: var(--d);
+}
+.fan-card b { display: block; font: 600 17px var(--serif); letter-spacing: -.01em; margin-bottom: 6px; }
+.fan-card > span:not(.n) { display: block; font: italic 15px/1.45 var(--serif); color: var(--text-2); }
+.fan-card .n { position: absolute; top: 14px; right: 14px; font: 600 11px var(--sans); color: var(--accent); letter-spacing: .08em; }
+@keyframes fanIn { from { opacity: 0; transform: translateX(-50%) translateY(30px) rotate(0); } }
+
+.section { display: flex; align-items: baseline; justify-content: space-between; margin: 36px 2px 12px; }
+.section h2 { font: 600 13px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.section span { font-size: 13px; color: var(--muted); }
+
+.grid { display: grid; gap: 12px; }
+@media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+.study {
+  position: relative; display: flex; flex-direction: column; gap: 10px; padding: 20px; min-height: 150px;
+  border-radius: 22px; background: var(--card); border: 1px solid var(--stroke); box-shadow: var(--shadow);
+  color: inherit; text-decoration: none; overflow: hidden;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  transition: transform .25s var(--ease), border-color .25s, background .25s;
+  animation: rise .5s var(--ease) both; animation-delay: calc(var(--i) * 50ms + 100ms);
+}
+.study::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(80% 60% at 100% 0%, var(--accent-soft), transparent 70%);
+}
+.study:hover { transform: translateY(-3px); border-color: var(--stroke-2); background: var(--card-hi); }
+.study:hover::before { opacity: 1; }
+.study:active { transform: scale(.985); }
+.study .meta { font-size: 12.5px; font-weight: 500; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.study .meta i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .6; }
+.study h3 { font: 500 24px/1.15 var(--serif); letter-spacing: -.02em; margin: 0; }
+.study .go { position: absolute; right: 18px; bottom: 18px; color: var(--muted); transition: transform .25s var(--ease), color .25s; }
+.study:hover .go { transform: translateX(3px); color: var(--accent); }
+.refs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-right: 32px; }
+.tag {
+  font-size: 12.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent-ink); letter-spacing: -.005em;
+}
+.empty-note { text-align: center; color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+/* ---------- forms ---------- */
+input, textarea, select {
+  font: inherit; color: var(--text); background: var(--field); border: 1px solid transparent;
+  border-radius: 14px; padding: 12px 14px; width: 100%; transition: border-color .2s, background .2s, box-shadow .2s;
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--stroke-2); background: var(--card-hi); box-shadow: 0 0 0 4px var(--accent-soft); }
+textarea { resize: vertical; min-height: 48px; line-height: 1.55; }
+::placeholder { color: var(--muted); opacity: .85; }
+select {
+  -webkit-appearance: none; appearance: none; padding-right: 38px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a857b' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 14px;
+}
+
+/* ---------- editor ---------- */
+.title-input {
+  font: 500 clamp(34px, 8.5vw, 48px)/1.08 var(--serif); letter-spacing: -.03em;
+  background: transparent; border: 0; border-radius: 0; padding: 4px 0; margin-top: 12px;
+}
+.title-input:focus { background: transparent; box-shadow: none; }
+.subline { color: var(--muted); font-size: 14px; margin: 4px 0 24px; }
+
+.composer {
+  position: relative; display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 16px;
+  border-radius: 20px; background: var(--card-hi); border: 1px solid var(--stroke-2); box-shadow: var(--shadow);
+  transition: box-shadow .2s, border-color .2s;
+}
+.composer:focus-within { box-shadow: 0 0 0 4px var(--accent-soft), var(--shadow); border-color: var(--accent); }
+.composer > .ic { color: var(--muted); }
+.composer .ac-wrap { flex: 1; position: static; }
+.composer textarea {
+  background: transparent; border: 0; box-shadow: none; resize: none; min-height: 44px; padding: 11px 4px;
+  font-size: 16px; overflow: hidden;
+}
+.composer textarea:focus { background: transparent; box-shadow: none; }
+.hint { font-size: 13px; color: var(--muted); margin: 10px 4px 0; line-height: 1.6; }
+kbd {
+  font: 600 11.5px var(--sans); padding: 2px 6px; border-radius: 6px; background: var(--field);
+  border: 1px solid var(--stroke); color: var(--text-2);
+}
+.err { color: var(--danger); font-size: 14px; margin: 8px 4px 0; }
+
+.ac {
+  position: absolute; left: 0; right: 0; top: calc(100% + 8px); z-index: 30; max-height: 320px; overflow-y: auto; padding: 6px;
+  background: var(--glass); border: 1px solid var(--stroke-2); border-radius: 18px;
+  box-shadow: 0 24px 48px -16px rgba(0,0,0,.35); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
+  animation: pop .18s var(--ease);
+}
+.ac button {
+  display: flex; width: 100%; justify-content: space-between; align-items: center; padding: 11px 12px; border-radius: 12px;
+  border: 0; background: none; color: var(--text); font: 500 16px var(--sans); cursor: pointer; text-align: left;
+}
+.ac button.sel { background: var(--accent-soft); }
+.ac button.sel span:first-child { color: var(--accent-ink); }
+.ac button span:last-child { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+
+.passages { display: grid; gap: 12px; margin-top: 12px; }
+.passage {
+  position: relative; display: grid; grid-template-columns: 44px 1fr; gap: 6px 10px; padding: 18px 16px 16px 14px;
+  border-radius: 22px; background: var(--card); border: 1px solid var(--stroke); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  animation: rise .4s var(--ease) both; animation-delay: calc(var(--i) * 40ms);
+  transition: border-color .2s;
+}
+.passage:focus-within { border-color: var(--stroke-2); }
+.num { font: italic 500 26px/1 var(--serif); color: var(--accent); text-align: center; padding-top: 6px; letter-spacing: -.02em; }
+.p-head { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.p-head .ref {
+  flex: 1; min-width: 0; font: 500 22px/1.2 var(--serif); letter-spacing: -.02em;
+  background: transparent; padding: 4px 0; border-radius: 0; border: 0;
+}
+.p-head .ref:focus { background: transparent; box-shadow: none; text-decoration: underline 2px var(--accent); text-underline-offset: 6px; }
+.p-head .ref.bad { color: var(--danger); }
+.p-actions { display: flex; gap: 2px; opacity: .55; transition: opacity .2s; }
+.passage:hover .p-actions, .passage:focus-within .p-actions { opacity: 1; }
+@media (hover: none) { .p-actions { opacity: 1; } }
+.p-body { grid-column: 2; display: grid; gap: 8px; }
+.with-icon { position: relative; }
+.with-icon .ic { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); width: 17px; height: 17px; pointer-events: none; }
+.with-icon input { padding-left: 38px; font-size: 15px; }
+
+.md { border-radius: 14px; background: var(--field); border: 1px solid transparent; transition: border-color .2s, background .2s, box-shadow .2s; }
+.md:focus-within { border-color: var(--stroke-2); background: var(--card-hi); box-shadow: 0 0 0 4px var(--accent-soft); }
+.md textarea, .md textarea:focus { background: transparent; border: 0; box-shadow: none; padding-top: 4px; font-size: 15px; }
+.md-bar { display: flex; align-items: center; gap: 2px; padding: 6px 8px 0; }
+.md-bar button {
+  width: 30px; height: 28px; border: 0; background: transparent; color: var(--muted); border-radius: 8px;
+  font: 16px var(--serif); cursor: pointer; transition: background .15s, color .15s;
+}
+.md-bar button:hover { background: var(--field); color: var(--text); }
+.md-hint { margin-left: auto; font-size: 11px; color: var(--muted); padding-right: 4px; letter-spacing: .01em; }
+@media (max-width: 420px) { .md-hint { display: none; } }
+.md-out { white-space: pre-wrap; overflow-wrap: anywhere; }
+.md-out strong { font-weight: 650; }
+
+.panel {
+  padding: 16px; border-radius: 22px; background: var(--card); border: 1px solid var(--stroke); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+
+/* ---------- settings ---------- */
+.opt {
+  display: flex; gap: 14px; align-items: center; padding: 16px; border-radius: 18px; cursor: pointer; margin-top: 8px;
+  background: var(--card); border: 1px solid var(--stroke); transition: border-color .2s, background .2s;
+}
+.opt:hover { border-color: var(--stroke-2); }
+.opt input { position: absolute; opacity: 0; pointer-events: none; width: auto; }
+.opt .radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--stroke-2); flex: none; display: grid; place-items: center; transition: border-color .2s; }
+.opt .radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); transform: scale(0); transition: transform .2s var(--ease); }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.opt:has(input:checked) .radio { border-color: var(--accent); }
+.opt:has(input:checked) .radio::after { transform: scale(1); }
+.opt:has(input:focus-visible) { box-shadow: 0 0 0 4px var(--accent-soft); }
+.opt b { display: block; font-weight: 650; }
+.opt span { font-size: 13.5px; color: var(--muted); }
+.page-title { font: 500 44px/1.05 var(--serif); letter-spacing: -.03em; margin: 16px 0 8px; }
+
+/* ---------- present ---------- */
+.stage { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+.stage-top {
+  position: sticky; top: 0; z-index: 20; padding: calc(8px + env(safe-area-inset-top)) 16px 4px;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+}
+.stage-top-inner { max-width: 760px; margin: 0 auto; }
+.segments { display: flex; gap: 5px; }
+.seg { flex: 1; padding: 8px 0; cursor: pointer; }
+.seg span { display: block; height: 3px; border-radius: 3px; background: var(--stroke-2); transition: background .3s; }
+.seg.done span { background: var(--text-2); opacity: .55; }
+.seg.on span { background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.stage-row { display: flex; align-items: center; gap: 8px; }
+.stage-row .ttl { flex: 1; min-width: 0; text-align: center; font-size: 14px; font-weight: 600; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.count { font-variant-numeric: tabular-nums; }
+
+.slide { flex: 1; width: 100%; max-width: 760px; margin: 0 auto; padding: 18px 24px 160px; touch-action: pan-y; }
+.slide.from-right { animation: inRight .45s var(--ease) both; }
+.slide.from-left { animation: inLeft .45s var(--ease) both; }
+.slide.fade { animation: rise .45s var(--ease) both; }
+.eyebrow { font: 600 12px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.ref-title {
+  font: 500 clamp(40px, 11vw, 68px)/1 var(--serif); letter-spacing: -.035em; margin: 10px 0 18px;
+}
+.ref-title em { font-style: italic; font-weight: 400; color: var(--accent); white-space: nowrap; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; font: 600 13px var(--sans); padding: 7px 13px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--stroke); color: var(--text-2);
+}
+.pill .ic { width: 15px; height: 15px; }
+select.pill { width: auto; field-sizing: content; padding: 7px 32px 7px 13px; background-position: right 11px center; background-size: 12px; }
+select.pill:focus { box-shadow: 0 0 0 4px var(--accent-soft); }
+.pill.reader { background: var(--accent-soft); color: var(--accent-ink); border-color: transparent; }
+.scripture {
+  font: 400 clamp(21px, 5.4vw, 27px)/1.72 var(--serif); letter-spacing: -.005em; margin-top: 28px; max-width: 34em;
+  text-wrap: pretty; font-optical-sizing: auto;
+}
+.scripture sup { font: 700 11px var(--sans); color: var(--accent); margin-right: 4px; vertical-align: .9em; }
+.scripture .err-text { font: 16px var(--sans); color: var(--muted); }
+.sk { display: grid; gap: 14px; margin-top: 34px; }
+.sk i {
+  display: block; height: 18px; border-radius: 8px;
+  background: linear-gradient(90deg, var(--field) 25%, var(--stroke-2) 50%, var(--field) 75%); background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+.note {
+  position: relative; margin-top: 32px; padding: 18px 20px 18px 22px; border-radius: 20px; line-height: 1.65; font-size: 16px;
+  background: var(--card); border: 1px solid var(--stroke); overflow: hidden;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+}
+.note::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: linear-gradient(var(--accent), var(--violet)); }
+.note .lbl { display: flex; align-items: center; gap: 6px; font: 700 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+.note .lbl .ic { width: 14px; height: 14px; }
+
+.dock {
+  position: fixed; z-index: 25; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  width: min(560px, calc(100% - 24px)); display: flex; gap: 8px; padding: 8px; border-radius: 24px;
+  background: var(--glass); border: 1px solid var(--stroke-2);
+  box-shadow: 0 24px 48px -16px rgba(0,0,0,.35); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
+  animation: dockIn .5s var(--ease) both;
+}
+.dock .btn { min-height: 50px; border-radius: 17px; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.dock .btn.icon { width: 50px; }
+.dock .open { flex: 0 1 auto; min-width: 0; padding: 0 14px; background: transparent; border-color: transparent; color: var(--text-2); }
+.dock .open:hover { background: var(--field); }
+.dock .open span { overflow: hidden; text-overflow: ellipsis; }
+.dock .next { flex: 1; }
+.dock .prev { background: transparent; }
+
+.sheet { position: fixed; inset: 0; z-index: 40; }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.35); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: fadeIn .2s ease both; }
+.sheet-panel {
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: min(560px, 100%); max-height: 75vh; overflow-y: auto;
+  padding: 10px 12px calc(16px + env(safe-area-inset-bottom)); border-radius: 26px 26px 0 0;
+  background: var(--glass); border: 1px solid var(--stroke-2); border-bottom: 0;
+  -webkit-backdrop-filter: blur(28px) saturate(1.4); backdrop-filter: blur(28px) saturate(1.4);
+  animation: sheetUp .35s var(--ease) both;
+}
+.grabber { width: 40px; height: 5px; border-radius: 5px; background: var(--stroke-2); margin: 0 auto 10px; }
+.sheet h3 { font: 600 13px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 10px 8px; }
+.jump {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px; border-radius: 16px; border: 0; background: none;
+  color: var(--text); font: inherit; text-align: left; cursor: pointer;
+}
+.jump:hover { background: var(--field); }
+.jump.on { background: var(--accent-soft); }
+.jump .jn { font: italic 500 20px var(--serif); color: var(--accent); width: 28px; text-align: center; }
+.jump b { font: 500 19px var(--serif); letter-spacing: -.01em; flex: 1; }
+.jump .muted { font-size: 13px; }
+
+/* ---------- shared ---------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; margin-top: 16px;
+  font: 600 12px var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); background: var(--accent-soft);
+}
+.badge .ic { width: 14px; height: 14px; }
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translate(-50%, 12px) scale(.96); z-index: 60;
+  display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; font-size: 14px; font-weight: 600;
+  background: var(--glass); color: var(--text); border: 1px solid var(--stroke-2);
+  box-shadow: 0 20px 40px -16px rgba(0,0,0,.35); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px);
+  opacity: 0; transition: opacity .25s, transform .35s var(--ease); pointer-events: none; max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+/* ---------- motion ---------- */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes inRight { from { opacity: 0; transform: translateX(40px); } }
+@keyframes inLeft { from { opacity: 0; transform: translateX(-40px); } }
+@keyframes pop { from { opacity: 0; transform: translateY(-6px) scale(.98); } }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes sheetUp { from { transform: translate(-50%, 100%); } }
+@keyframes dockIn { from { opacity: 0; transform: translate(-50%, 20px); } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+// ---------- Bible book data & reference parsing ----------
+const BOOK_SRC = `GEN|Genesis|Gen|ge gn
+EXO|Exodus|Exo|ex exod
+LEV|Leviticus|Lev|le lv
+NUM|Numbers|Num|nu nm nb
+DEU|Deuteronomy|Deut|de dt deu
+JOS|Joshua|Josh|jos jsh
+JDG|Judges|Judg|jdg jg jdgs
+RUT|Ruth|Ruth|rth ru
+1SA|1 Samuel|1 Sam|1sa 1sm 1s
+2SA|2 Samuel|2 Sam|2sa 2sm 2s
+1KI|1 Kings|1 Kgs|1ki 1kin 1k
+2KI|2 Kings|2 Kgs|2ki 2kin 2k
+1CH|1 Chronicles|1 Chr|1ch 1chron
+2CH|2 Chronicles|2 Chr|2ch 2chron
+EZR|Ezra|Ezra|ezr
+NEH|Nehemiah|Neh|ne
+EST|Esther|Esth|est es
+JOB|Job|Job|jb
+PSA|Psalms|Ps|psa psalm pss psm
+PRO|Proverbs|Prov|pro prv pr
+ECC|Ecclesiastes|Eccl|ecc ec qoh
+SNG|Song of Songs|Song|sng sos songofsolomon canticles
+ISA|Isaiah|Isa|is
+JER|Jeremiah|Jer|je jr
+LAM|Lamentations|Lam|la
+EZK|Ezekiel|Ezek|eze ezk
+DAN|Daniel|Dan|da dn
+HOS|Hosea|Hos|ho
+JOL|Joel|Joel|jl
+AMO|Amos|Amos|am
+OBA|Obadiah|Obad|ob oba
+JON|Jonah|Jonah|jnh jon
+MIC|Micah|Mic|mc
+NAM|Nahum|Nah|na
+HAB|Habakkuk|Hab|hb
+ZEP|Zephaniah|Zeph|zep zp
+HAG|Haggai|Hag|hg
+ZEC|Zechariah|Zech|zec zc
+MAL|Malachi|Mal|ml
+MAT|Matthew|Matt|mt mat
+MRK|Mark|Mark|mrk mk mr
+LUK|Luke|Luke|luk lk
+JHN|John|John|jhn jn joh
+ACT|Acts|Acts|act ac
+ROM|Romans|Rom|ro rm
+1CO|1 Corinthians|1 Cor|1co
+2CO|2 Corinthians|2 Cor|2co
+GAL|Galatians|Gal|ga
+EPH|Ephesians|Eph|ephes
+PHP|Philippians|Phil|php pp
+COL|Colossians|Col|co
+1TH|1 Thessalonians|1 Thess|1th 1thes
+2TH|2 Thessalonians|2 Thess|2th 2thes
+1TI|1 Timothy|1 Tim|1ti
+2TI|2 Timothy|2 Tim|2ti
+TIT|Titus|Titus|tit
+PHM|Philemon|Phlm|philem phm
+HEB|Hebrews|Heb|he
+JAS|James|Jas|jm
+1PE|1 Peter|1 Pet|1pe 1pt 1p
+2PE|2 Peter|2 Pet|2pe 2pt 2p
+1JN|1 John|1 John|1jn 1jo 1j
+2JN|2 John|2 John|2jn 2jo 2j
+3JN|3 John|3 John|3jn 3jo 3j
+JUD|Jude|Jude|jud jd
+REV|Revelation|Rev|re revelations apocalypse`;
+
+const BOOKS = BOOK_SRC.split('\n').map(line => {
+  const [id, name, short, aliases] = line.split('|');
+  return { id, name, short, aliases: aliases.split(' ') };
+});
+const BOOK_BY_ID = new Map(BOOKS.map(b => [b.id, b]));
+const SINGLE_CHAPTER = new Set(['OBA', 'PHM', '2JN', '3JN', 'JUD']);
+
+function norm(s) {
+  return s.toLowerCase().trim()
+    .replace(/^(iii|3rd|third)\b\.?\s*/, '3')
+    .replace(/^(ii|2nd|second)\b\.?\s*/, '2')
+    .replace(/^(i|1st|first)\b\.?\s*/, '1')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+const ALIAS = new Map();
+for (const b of BOOKS) {
+  for (const a of [b.id, b.name, b.short, ...b.aliases]) {
+    const k = norm(a);
+    if (!ALIAS.has(k)) ALIAS.set(k, b);
+  }
+}
+
+function findBook(s) {
+  const k = norm(s);
+  if (!k) return null;
+  if (ALIAS.has(k)) return ALIAS.get(k);
+  if (k.length < 2) return null;
+  return BOOKS.find(b => norm(b.name).startsWith(k)) || null;
+}
+
+// "4:6-7", "23", "4:6-5:2", or "6-7" (verses when ctxChapter is given)
+function parseNums(s, book, ctxChapter) {
+  s = s.replace(/\s+/g, '').replace(/[–—]/g, '-');
+  const m = s.match(/^(\d+)(?::(\d+))?(?:-(\d+)(?::(\d+))?)?$/);
+  if (!m) return null;
+  const [a, bv, c, d] = m.slice(1).map(x => (x ? parseInt(x, 10) : null));
+  let r;
+  if (!s.includes(':') && (ctxChapter != null || SINGLE_CHAPTER.has(book))) {
+    const ch = ctxChapter ?? 1;
+    r = { b: book, c1: ch, v1: a, c2: ch, v2: c };
+  } else if (bv != null) {
+    r = d != null ? { b: book, c1: a, v1: bv, c2: c, v2: d } : { b: book, c1: a, v1: bv, c2: a, v2: c };
+  } else {
+    r = d != null ? { b: book, c1: a, v1: 1, c2: c, v2: d } : { b: book, c1: a, v1: null, c2: c ?? a, v2: null };
+  }
+  if (r.v2 != null && r.c2 === r.c1 && r.v2 <= r.v1) r.v2 = null;
+  if (r.c1 < 1 || r.c2 < r.c1) return null;
+  return r;
+}
+
+// Accepts "Phil 4:6-7; Exo 2:5, Prov 3:5-6" or one per line. "Phil 4:6-7, 9" continues the previous book.
+function parseRefs(text) {
+  const refs = [], errors = [];
+  for (const seg of text.split(/[;\n]+/)) {
+    let last = null;
+    for (let part of seg.split(',')) {
+      part = part.trim();
+      if (!part) continue;
+      let ref = null;
+      if (last && /^[\d:\-–—\s]+$/.test(part)) {
+        ref = parseNums(part, last.b, part.includes(':') ? null : (last.v1 != null ? last.c2 : null));
+      } else {
+        const m = part.match(/^(.*?[a-z].*?)\.?\s*(\d.*)$/i);
+        const book = m && findBook(m[1]);
+        if (book) ref = parseNums(m[2], book.id, null);
+      }
+      if (ref) { refs.push(ref); last = ref; } else errors.push(part);
+    }
+  }
+  return { refs, errors };
+}
+
+function suffix(r) {
+  let s = '' + r.c1;
+  if (r.v1 != null) {
+    s += ':' + r.v1;
+    if (r.c2 !== r.c1) s += '-' + r.c2 + ':' + r.v2;
+    else if (r.v2 != null) s += '-' + r.v2;
+  } else if (r.c2 !== r.c1) {
+    s += '-' + r.c2;
+  }
+  return s;
+}
+
+function label(r, full) {
+  const b = BOOK_BY_ID.get(r.b);
+  return (full ? b.name : b.short) + ' ' + suffix(r);
+}
+
+// ---------- Scripture sources ----------
+// Public-domain text shown inline, fetched from bible-api.com.
+const INLINE = [
+  { id: 'kjv', name: 'KJV', desc: 'King James Version — classic, traditional wording' },
+  { id: 'web', name: 'WEB', desc: 'World English Bible — modern English, easy to read aloud' },
+  { id: 'webbe', name: 'WEBBE', desc: 'World English Bible, British edition' },
+  { id: 'off', name: 'Hide text', desc: 'Show only the reference and use “Open in” for the text' },
+];
+// YouVersion (bible.com) version IDs, used only for "Open in" links.
+const YV = [
+  { id: '111', abbr: 'NIV' },
+  { id: '59', abbr: 'ESV' },
+  { id: '114', abbr: 'NKJV' },
+  { id: '2692', abbr: 'NASB2020' },
+  { id: '100', abbr: 'NASB1995' },
+  { id: '1', abbr: 'KJV' },
+  { id: '116', abbr: 'NLT' },
+  { id: '1588', abbr: 'AMP' },
+  { id: '1713', abbr: 'CSB' },
+  { id: '97', abbr: 'MSG' },
+];
+
+function yvVersion() {
+  const s = db.settings;
+  if (s.yv === 'custom') return { id: (s.yvCustom || '').replace(/\D/g, '') || '111', abbr: '' };
+  return YV.find(v => v.id === s.yv) || YV[0];
+}
+
+function yvUrl(r) {
+  const v = yvVersion();
+  let p = r.b + '.' + r.c1;
+  if (r.v1 != null) p += '.' + r.v1 + (r.c2 === r.c1 && r.v2 != null ? '-' + r.v2 : '');
+  return `https://www.bible.com/bible/${v.id}/${p}${v.abbr ? '.' + v.abbr : ''}`;
+}
+
+function apiQuery(r) {
+  const name = r.b === 'SNG' ? 'Song of Solomon' : BOOK_BY_ID.get(r.b).name;
+  return name + ' ' + suffix(r);
+}
+
+// ---------- Storage (localStorage only; older "versedeck" keys are migrated) ----------
+const KEY = 'bst:v1', OLD_KEY = 'versedeck:v1';
+const TEXT_KEY = 'bst:text', OLD_TEXT_KEY = 'versedeck:text';
+
+function readJson(...keys) {
+  for (const k of keys) {
+    try { const v = JSON.parse(localStorage.getItem(k)); if (v) return v; } catch (e) {}
+  }
+  return null;
+}
+
+let textCache = readJson(TEXT_KEY, OLD_TEXT_KEY) || {};
+
+async function getPassage(r, t) {
+  const key = t + '|' + apiQuery(r);
+  if (textCache[key]) return textCache[key];
+  const res = await fetch(`https://bible-api.com/${encodeURIComponent(apiQuery(r))}?translation=${t}`);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const j = await res.json();
+  const verses = (j.verses || []).map(v => ({ c: v.chapter, v: v.verse, t: v.text.trim() }));
+  textCache[key] = verses;
+  try { localStorage.setItem(TEXT_KEY, JSON.stringify(textCache)); } catch (e) {}
+  return verses;
+}
+
+let db = loadDb();
+let shared = null;
+save();
+
+function loadDb() {
+  const d = readJson(KEY, OLD_KEY);
+  if (d && Array.isArray(d.lists)) return d;
+  return { lists: [], settings: { inline: 'kjv', yv: '111', yvCustom: '' } };
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function getList(id) { return id === 'shared' ? shared : db.lists.find(l => l.id === id); }
+
+// ---------- Share links (whole list encoded in the URL, no server needed) ----------
+function b64urlEncode(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  bytes.forEach(b => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64urlDecode(s) {
+  const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+  return new TextDecoder().decode(Uint8Array.from(bin, ch => ch.charCodeAt(0)));
+}
+function encodeShare(list) {
+  return b64urlEncode(JSON.stringify({
+    t: list.title, n: list.notes || '',
+    i: list.items.map(it => [label(it.ref), it.reader || '', it.note || '']),
+  }));
+}
+function decodeShare(s) {
+  const d = JSON.parse(b64urlDecode(s));
+  const items = [];
+  for (const [ref, reader, note] of d.i || []) {
+    const r = parseRefs(ref).refs[0];
+    if (r) items.push({ id: uid(), ref: r, reader, note });
+  }
+  return { id: 'shared', title: d.t || 'Shared study', notes: d.n || '', items };
+}
+
+// ---------- Helpers ----------
+const app = document.getElementById('app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+// Tiny markdown: **bold**, *italic* or _italic_, __underline__. Escapes first, so it is safe.
+function md(s) {
+  return esc(s)
+    .replace(/\*\*(?=\S)([\s\S]*?\S)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(?=\S)([\s\S]*?\S)__/g, '<u>$1</u>')
+    .replace(/\*(?=\S)([^*\n]*?\S)\*/g, '<em>$1</em>')
+    .replace(/(^|[^\w])_(?=\S)([^_\n]*?\S)_(?!\w)/g, '$1<em>$2</em>');
+}
+
+const ICONS = {
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  back: '<path d="M15 18l-6-6 6-6"/>',
+  next: '<path d="M9 18l6-6-6-6"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  play: '<path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/>',
+  share: '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4M12 2v13"/>',
+  trash: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',
+  up: '<path d="M18 15l-6-6-6 6"/>',
+  down: '<path d="M6 9l6 6 6-6"/>',
+  x: '<path d="M18 6L6 18M6 6l12 12"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  ext: '<path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  check: '<path d="M20 6L9 17l-5-5"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+  pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  list: '<path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+};
+const icon = n => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+
+function ago(t) {
+  const m = (Date.now() - t) / 60000;
+  if (m < 1) return 'just now';
+  if (m < 60) return Math.floor(m) + 'm ago';
+  if (m < 1440) return Math.floor(m / 60) + 'h ago';
+  if (m < 10080) return Math.floor(m / 1440) + 'd ago';
+  return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+const pad = n => String(n).padStart(2, '0');
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.innerHTML = icon('check') + esc(msg);
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+function mdEditor(field, value, placeholder, idx) {
+  const at = idx != null ? ` data-idx="${idx}"` : '';
+  return `<div class="md">
+    <div class="md-bar">
+      <button type="button" data-md="b" title="Bold (⌘B)" aria-label="Bold"><b>B</b></button>
+      <button type="button" data-md="i" title="Italic (⌘I)" aria-label="Italic"><i>I</i></button>
+      <button type="button" data-md="u" title="Underline (⌘U)" aria-label="Underline"><u>U</u></button>
+      <span class="md-hint">**bold** &nbsp;*italic* &nbsp;__underline__</span>
+    </div>
+    <textarea data-field="${field}"${at} rows="2" placeholder="${placeholder}">${esc(value)}</textarea>
+  </div>`;
+}
+
+// ---------- Views ----------
+const FAN = [
+  { ref: 'Exodus 2:5', text: 'Pharaoh’s daughter came down to bathe at the river…', x: '-26%', r: '-8deg', d: '.15s', n: 2 },
+  { ref: 'Proverbs 3:5–6', text: 'Trust in Yahweh with all your heart…', x: '26%', r: '7deg', d: '.25s', n: 3 },
+  { ref: 'Philippians 4:6–7', text: 'In nothing be anxious, but in everything, by prayer…', x: '0%', r: '-1deg', d: '.05s', n: 1 },
+];
+
+function viewHome() {
+  const lists = [...db.lists].sort((a, b) => b.updated - a.updated);
+  app.innerHTML = `<div class="wrap">
+    <header class="bar">
+      <div class="brand"><img src="icon.svg" alt="">Bible Sharing</div>
+      <span class="grow"></span>
+      <a class="btn icon ghost" href="#/settings" aria-label="Settings">${icon('gear')}</a>
+    </header>
+
+    <section class="hero">
+      <h1>Read <em>together</em>,<br>passage by passage.</h1>
+      <p>Line up the verses for your study, add your notes, then step through them while everyone reads.</p>
+      ${lists.length ? '' : `<div class="fan" aria-hidden="true">${FAN.map(f => `
+        <div class="fan-card" style="--x:${f.x};--r:${f.r};--d:${f.d}"><span class="n">${pad(f.n)}</span><b>${f.ref}</b><span>${f.text}</span></div>`).join('')}
+      </div>`}
+      <button class="btn primary lg${lists.length ? '' : ' block'}" data-act="new">${icon('plus')} New study</button>
+      ${lists.length ? '' : `<p class="empty-note" style="margin-top:14px">Your studies are saved on this device.</p>`}
+    </section>
+
+    ${lists.length ? `
+      <div class="section"><h2>Your studies</h2><span>${lists.length}</span></div>
+      <div class="grid">${lists.map((l, i) => `
+        <a class="study" href="#/list/${l.id}" style="--i:${i}">
+          <div class="meta">${plural(l.items.length, 'passage')}<i></i>${ago(l.updated)}</div>
+          <h3>${esc(l.title || 'Untitled study')}</h3>
+          ${l.items.length ? `<div class="refs">${l.items.slice(0, 3).map(it => `<span class="tag">${esc(label(it.ref))}</span>`).join('')}${l.items.length > 3 ? `<span class="tag">+${l.items.length - 3}</span>` : ''}</div>` : ''}
+          <span class="go">${icon('arrow')}</span>
+        </a>`).join('')}
+      </div>` : ''}
+  </div>`;
+}
+
+function viewSettings() {
+  const s = db.settings;
+  app.innerHTML = `<div class="wrap">
+    <header class="bar"><a class="btn sm ghost" href="#/">${icon('back')} Back</a></header>
+    <h1 class="page-title" style="animation:rise .5s var(--ease) both">Settings</h1>
+
+    <div class="section"><h2>Verse text in the app</h2></div>
+    ${INLINE.map(t => `
+      <label class="opt">
+        <input type="radio" name="inline" value="${t.id}" data-setting="inline"${s.inline === t.id ? ' checked' : ''}>
+        <span class="radio"></span>
+        <div><b>${t.name}</b><span>${t.desc}</span></div>
+      </label>`).join('')}
+    <p class="hint">These translations are public domain, so they can be shown here for free.</p>
+
+    <div class="section"><h2>“Open in” button</h2></div>
+    <div class="panel">
+      <select id="yv" data-setting="yv" aria-label="Open in translation">
+        ${YV.map(v => `<option value="${v.id}"${s.yv === v.id ? ' selected' : ''}>${v.abbr}</option>`).join('')}
+        <option value="custom"${s.yv === 'custom' ? ' selected' : ''}>Other (YouVersion ID)…</option>
+      </select>
+      ${s.yv === 'custom' ? `<input data-setting="yvCustom" inputmode="numeric" placeholder="YouVersion version number, e.g. 2195" value="${esc(s.yvCustom)}" style="margin-top:8px">` : ''}
+      <p class="hint">Opens the passage on Bible.com. Use this for NIV, ESV, NASB and other licensed translations.</p>
+    </div>
+
+    <div class="section"><h2>About</h2></div>
+    <div class="panel muted" style="font-size:14px;line-height:1.6">
+      Your studies are saved only in this browser. Share links contain the whole study, so anyone with the link can read it.
+    </div>
+  </div>`;
+}
+
+function viewEdit(list) {
+  app.innerHTML = `<div class="wrap">
+    <header class="bar">
+      <a class="btn icon ghost" href="#/" aria-label="Back to studies">${icon('back')}</a>
+      <span class="grow"></span>
+      <button class="btn sm" data-act="share">${icon('share')} Share</button>
+      <a class="btn sm primary${list.items.length ? '' : ' disabled'}" href="#/present/${list.id}/0">${icon('play')} Present</a>
+    </header>
+
+    <input class="title-input" data-field="title" placeholder="Untitled study" value="${esc(list.title)}" aria-label="Study title">
+    <div class="subline">${plural(list.items.length, 'passage')} · edited ${ago(list.updated)}</div>
+
+    <div class="composer">
+      ${icon('search')}
+      <div class="ac-wrap">
+        <textarea id="addRefs" rows="1" placeholder="Add a passage — try “phil”" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Add passages"></textarea>
+        <div class="ac" id="ac" hidden></div>
+      </div>
+      <button class="btn primary sm" data-act="add">Add</button>
+    </div>
+    <div class="hint">Add several at once with <kbd>;</kbd> &nbsp;e.g. Phil 4:6-7; Exo 2:5; Prov 3:5-6</div>
+    <div class="err" id="addErr"></div>
+
+    ${list.items.length ? `<div class="section"><h2>Passages</h2><span>${list.items.length}</span></div>` : ''}
+    <div class="passages">${list.items.map((it, i) => `
+      <div class="passage" style="--i:${i}">
+        <div class="num">${pad(i + 1)}</div>
+        <div class="p-head">
+          <input class="ref" data-field="ref" data-idx="${i}" value="${esc(label(it.ref, true))}" aria-label="Reference">
+          <div class="p-actions">
+            <button class="btn xs ghost" data-act="up" data-idx="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">${icon('up')}</button>
+            <button class="btn xs ghost" data-act="down" data-idx="${i}" ${i === list.items.length - 1 ? 'disabled' : ''} aria-label="Move down">${icon('down')}</button>
+            <button class="btn xs ghost danger" data-act="remove" data-idx="${i}" aria-label="Remove">${icon('x')}</button>
+          </div>
+        </div>
+        <div class="p-body">
+          <div class="with-icon">${icon('user')}<input data-field="reader" data-idx="${i}" placeholder="Who reads this?" value="${esc(it.reader)}"></div>
+          ${mdEditor('note', it.note, 'Your note or insight…', i)}
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <div class="section"><h2>Study notes</h2></div>
+    ${mdEditor('notes', list.notes, 'Opening thought, discussion questions, prayer points…')}
+    <p class="hint">Shown after the last passage when presenting.</p>
+
+    <div style="margin-top:40px;text-align:center">
+      <button class="btn sm ghost danger" data-act="delete">${icon('trash')} Delete study</button>
+    </div>
+  </div>`;
+}
+
+function viewShared() {
+  const list = shared;
+  app.innerHTML = `<div class="wrap">
+    <header class="bar">
+      <a class="btn sm ghost" href="#/">${icon('back')} My studies</a>
+    </header>
+    <div class="badge">${icon('share')} Shared with you</div>
+    <h1 class="page-title" style="font-size:clamp(36px,9vw,52px)">${esc(list.title)}</h1>
+    <div class="subline">${plural(list.items.length, 'passage')}</div>
+    <div style="display:flex;gap:8px">
+      <a class="btn primary lg" style="flex:1" href="#/present/shared/0">${icon('play')} Present</a>
+      <button class="btn lg" style="flex:1" data-act="saveShared">${icon('save')} Save copy</button>
+    </div>
+    <div class="passages" style="margin-top:24px">${list.items.map((it, i) => `
+      <div class="passage" style="--i:${i}">
+        <div class="num">${pad(i + 1)}</div>
+        <div class="p-head"><span class="ref" style="font:500 22px/1.2 var(--serif);letter-spacing:-.02em;padding:4px 0">${esc(label(it.ref, true))}</span></div>
+        ${it.reader || it.note ? `<div class="p-body">
+          ${it.reader ? `<div class="pills"><span class="pill reader">${icon('user')}${esc(it.reader)}</span></div>` : ''}
+          ${it.note ? `<div class="md-out" style="color:var(--text-2)">${md(it.note)}</div>` : ''}
+        </div>` : ''}
+      </div>`).join('')}
+    </div>
+    ${list.notes ? `<div class="note"><span class="lbl">${icon('pen')}Study notes</span><div class="md-out">${md(list.notes)}</div></div>` : ''}
+  </div>`;
+}
+
+let slideToken = 0;
+let lastSlide = null;
+function viewPresent(list, idx) {
+  const it = list.items[idx];
+  const n = list.items.length;
+  const inline = db.settings.inline;
+  const back = list.id === 'shared' ? '#/shared' : '#/list/' + list.id;
+  const isLast = idx === n - 1;
+  const book = BOOK_BY_ID.get(it.ref.b).name;
+  const dir = lastSlide && lastSlide.id === list.id && lastSlide.idx !== idx ? (idx > lastSlide.idx ? 'from-right' : 'from-left') : 'fade';
+  lastSlide = { id: list.id, idx };
+
+  app.innerHTML = `<div class="stage">
+    <header class="stage-top"><div class="stage-top-inner">
+      <nav class="segments" aria-label="Progress">
+        ${list.items.map((x, i) => `<a class="seg${i < idx ? ' done' : ''}${i === idx ? ' on' : ''}" data-act="goto" data-idx="${i}" title="${esc(label(x.ref))}" aria-label="${esc(label(x.ref, true))}"><span></span></a>`).join('')}
+      </nav>
+      <div class="stage-row">
+        <a class="btn icon ghost" href="${back}" aria-label="Close">${icon('x')}</a>
+        <span class="ttl">${esc(list.title || 'Untitled study')}</span>
+        <button class="btn sm ghost count" data-act="jump" aria-label="All passages">${icon('list')}${idx + 1}/${n}</button>
+      </div>
+    </div></header>
+
+    <article class="slide ${dir}" id="slide">
+      <div class="eyebrow">Passage ${pad(idx + 1)} · ${pad(n)}</div>
+      <h1 class="ref-title">${esc(book)} <em>${esc(suffix(it.ref).replace(/-/g, '–'))}</em></h1>
+      <div class="pills">
+        <select class="pill" data-setting="inline" aria-label="Translation">
+          ${INLINE.map(t => `<option value="${t.id}"${inline === t.id ? ' selected' : ''}>${t.name}</option>`).join('')}
+        </select>
+        ${it.reader ? `<span class="pill reader">${icon('user')}${esc(it.reader)}</span>` : ''}
+      </div>
+      ${inline !== 'off' ? `<div class="scripture" id="scripture"><div class="sk"><i></i><i style="width:92%"></i><i style="width:96%"></i><i style="width:60%"></i></div></div>` : ''}
+      ${it.note ? `<div class="note"><span class="lbl">${icon('pen')}Note</span><div class="md-out">${md(it.note)}</div></div>` : ''}
+      ${isLast && list.notes ? `<div class="note"><span class="lbl">${icon('pen')}Study notes</span><div class="md-out">${md(list.notes)}</div></div>` : ''}
+    </article>
+
+    <nav class="dock">
+      <button class="btn icon prev" data-act="prev" ${idx === 0 ? 'disabled' : ''} aria-label="Previous">${icon('back')}</button>
+      <a class="btn open" href="${yvUrl(it.ref)}" target="_blank" rel="noopener" aria-label="Open in ${esc(yvVersion().abbr || 'YouVersion')}" title="Open on Bible.com"><span>${esc(yvVersion().abbr || 'Bible.com')}</span>${icon('ext')}</a>
+      ${isLast
+        ? `<a class="btn primary next" href="${back}">${icon('check')} Finish</a>`
+        : `<button class="btn primary next" data-act="next">Next ${icon('next')}</button>`}
+    </nav>
+
+    <div class="sheet" id="sheet" hidden>
+      <div class="sheet-backdrop" data-act="closeJump"></div>
+      <div class="sheet-panel" role="dialog" aria-label="All passages">
+        <div class="grabber"></div>
+        <h3>Passages</h3>
+        ${list.items.map((x, i) => `
+          <button class="jump${i === idx ? ' on' : ''}" data-act="goto" data-idx="${i}">
+            <span class="jn">${pad(i + 1)}</span><b>${esc(label(x.ref, true))}</b>${x.reader ? `<span class="muted">${esc(x.reader)}</span>` : ''}
+          </button>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  window.scrollTo(0, 0);
+  if (inline === 'off') return;
+  const token = ++slideToken;
+  getPassage(it.ref, inline).then(verses => {
+    if (token !== slideToken) return;
+    let lastC = null;
+    document.getElementById('scripture').innerHTML = verses.map(v => {
+      const num = (lastC != null && v.c !== lastC) ? `${v.c}:${v.v}` : v.v;
+      lastC = v.c;
+      return `<sup>${num}</sup>${esc(v.t)}`;
+    }).join(' ');
+  }).catch(() => {
+    if (token !== slideToken) return;
+    document.getElementById('scripture').innerHTML =
+      `<span class="err-text">Couldn’t load the text (are you offline?). Use “Open in” below.</span>`;
+  });
+  // Warm the next passage so it appears instantly.
+  if (idx + 1 < n) getPassage(list.items[idx + 1].ref, inline).catch(() => {});
+}
+
+function toggleSheet(open) {
+  const el = document.getElementById('sheet');
+  if (el) el.hidden = !open;
+}
+
+// ---------- Book autocomplete ----------
+function bookMatches(q) {
+  const k = norm(q);
+  if (!k) return [];
+  return BOOKS.map(b => {
+    const n = norm(b.name);
+    const s = n.startsWith(k) ? 0
+      : [b.short, ...b.aliases].some(a => norm(a).startsWith(k)) ? 1
+      : n.includes(k) ? 2 : -1;
+    return { b, s };
+  }).filter(x => x.s >= 0).sort((x, y) => x.s - y.s).slice(0, 8).map(x => x.b);
+}
+
+let ac = { items: [], sel: 0, start: 0 };
+
+function hideAc() {
+  ac.items = [];
+  const el = document.getElementById('ac');
+  if (el) el.hidden = true;
+}
+
+// Suggest books for the reference currently being typed (text after the last ; , or newline).
+function updateAc(ta) {
+  const pos = ta.selectionStart;
+  const part = ta.value.slice(0, pos).match(/[^;,\n]*$/)[0].replace(/^\s+/, '');
+  const exact = BOOKS.some(b => norm(b.name) === norm(part));
+  if (!/^(\d\s*)?[a-z][a-z .]*$/i.test(part) || (exact && /\s$/.test(part))) return hideAc();
+  ac = { items: bookMatches(part), sel: 0, start: pos - part.length };
+  if (!ac.items.length) return hideAc();
+  renderAc();
+}
+
+function renderAc() {
+  const el = document.getElementById('ac');
+  el.innerHTML = ac.items.map((b, i) =>
+    `<button type="button" data-ac="${i}" class="${i === ac.sel ? 'sel' : ''}"><span>${esc(b.name)}</span><span>${esc(b.short)}</span></button>`
+  ).join('');
+  el.hidden = false;
+  el.querySelector('.sel')?.scrollIntoView({ block: 'nearest' });
+}
+
+function pickAc(i) {
+  const ta = document.getElementById('addRefs');
+  const book = ac.items[i];
+  if (!ta || !book) return;
+  const insert = book.name + ' ';
+  ta.value = ta.value.slice(0, ac.start) + insert + ta.value.slice(ta.selectionStart);
+  const caret = ac.start + insert.length;
+  ta.setSelectionRange(caret, caret);
+  ta.focus();
+  hideAc();
+}
+
+// ---------- Markdown toolbar ----------
+const MARK = { b: '**', i: '*', u: '__' };
+
+// Wraps (or unwraps) the selection in the textarea with the given marker.
+function applyMd(ta, kind) {
+  const m = MARK[kind], v = ta.value, s = ta.selectionStart, e = ta.selectionEnd;
+  const wrapped = v.slice(s - m.length, s) === m && v.slice(e, e + m.length) === m
+    && v[s - m.length - 1] !== m[0] && v[e + m.length] !== m[0];
+  let ns, ne;
+  if (wrapped) {
+    ta.value = v.slice(0, s - m.length) + v.slice(s, e) + v.slice(e + m.length);
+    ns = s - m.length; ne = e - m.length;
+  } else {
+    ta.value = v.slice(0, s) + m + v.slice(s, e) + m + v.slice(e);
+    ns = s + m.length; ne = e + m.length;
+  }
+  ta.focus();
+  ta.setSelectionRange(ns, ne);
+  ta.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+// ---------- Router ----------
+let current = { view: 'home' };
+function route() {
+  if (location.hash.startsWith('#share=')) {
+    try { shared = decodeShare(location.hash.slice(7)); } catch (e) { shared = null; }
+    history.replaceState(null, '', shared ? '#/shared' : '#/');
+  }
+  const [view, id, i] = location.hash.replace(/^#\/?/, '').split('/');
+  const list = id ? getList(id) : null;
+  if (view !== 'present') lastSlide = null;
+  if (view === 'list' && list && id !== 'shared') {
+    current = { view, list }; viewEdit(list);
+  } else if (view === 'shared' && shared) {
+    current = { view }; viewShared();
+  } else if (view === 'settings') {
+    current = { view }; viewSettings();
+  } else if (view === 'present' && list && list.items.length) {
+    const idx = Math.min(Math.max(parseInt(i, 10) || 0, 0), list.items.length - 1);
+    current = { view, list, idx }; viewPresent(list, idx);
+  } else {
+    current = { view: 'home' }; viewHome();
+  }
+}
+
+function go(idx) {
+  const { list } = current;
+  if (idx < 0 || idx >= list.items.length) return;
+  location.replace('#/present/' + list.id + '/' + idx);
+}
+
+function touch(list) { list.updated = Date.now(); save(); }
+
+// ---------- Events ----------
+// Keep focus (and selection) in the textarea while tapping suggestions or toolbar buttons.
+app.addEventListener('mousedown', e => { if (e.target.closest('.ac, .md-bar')) e.preventDefault(); });
+
+app.addEventListener('click', async e => {
+  const pick = e.target.closest('[data-ac]');
+  if (pick) return pickAc(+pick.dataset.ac);
+  const mdBtn = e.target.closest('[data-md]');
+  if (mdBtn) return applyMd(mdBtn.closest('.md').querySelector('textarea'), mdBtn.dataset.md);
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  const idx = parseInt(el.dataset.idx, 10);
+  const list = current.list;
+
+  if (act === 'new') {
+    const l = { id: uid(), title: '', notes: '', items: [], updated: Date.now() };
+    db.lists.push(l); save();
+    location.hash = '#/list/' + l.id;
+    setTimeout(() => document.getElementById('addRefs')?.focus(), 50);
+  } else if (act === 'add') {
+    const ta = document.getElementById('addRefs');
+    const { refs, errors } = parseRefs(ta.value);
+    refs.forEach(r => list.items.push({ id: uid(), ref: r, reader: '', note: '' }));
+    touch(list); viewEdit(list);
+    const ta2 = document.getElementById('addRefs');
+    ta2.value = errors.join('; ');
+    if (errors.length) document.getElementById('addErr').textContent = 'Couldn’t read: ' + errors.join(', ');
+    else if (refs.length) toast('Added ' + plural(refs.length, 'passage'));
+    ta2.focus();
+  } else if (act === 'up' || act === 'down') {
+    const j = act === 'up' ? idx - 1 : idx + 1;
+    [list.items[idx], list.items[j]] = [list.items[j], list.items[idx]];
+    touch(list); viewEdit(list);
+  } else if (act === 'remove') {
+    list.items.splice(idx, 1);
+    touch(list); viewEdit(list);
+  } else if (act === 'delete') {
+    if (!confirm('Delete “' + (list.title || 'Untitled study') + '”?')) return;
+    db.lists = db.lists.filter(l => l !== list); save();
+    location.hash = '#/';
+  } else if (act === 'share') {
+    if (!list.items.length) return toast('Add some passages first');
+    const url = location.href.split('#')[0] + '#share=' + encodeShare(list);
+    try {
+      if (navigator.share) await navigator.share({ title: list.title || 'Bible study', url });
+      else { await navigator.clipboard.writeText(url); toast('Link copied'); }
+    } catch (err) { if (err.name !== 'AbortError') prompt('Copy this link:', url); }
+  } else if (act === 'saveShared') {
+    const copy = { ...shared, id: uid(), items: shared.items.map(it => ({ ...it, id: uid() })), updated: Date.now() };
+    db.lists.push(copy); save();
+    location.hash = '#/list/' + copy.id;
+    toast('Saved to your studies');
+  } else if (act === 'prev') go(current.idx - 1);
+  else if (act === 'next') go(current.idx + 1);
+  else if (act === 'goto') go(idx);
+  else if (act === 'jump') toggleSheet(true);
+  else if (act === 'closeJump') toggleSheet(false);
+});
+
+app.addEventListener('input', e => {
+  const el = e.target;
+  if (el.id === 'addRefs') return updateAc(el);
+  if (el.dataset.setting) {
+    db.settings[el.dataset.setting] = el.value; save();
+    if (el.tagName === 'SELECT' || el.type === 'radio') route();
+    return;
+  }
+  const f = el.dataset.field;
+  const list = current.list;
+  if (!f || !list || f === 'ref') return;
+  if (f === 'title' || f === 'notes') list[f] = el.value;
+  else list.items[+el.dataset.idx][f] = el.value;
+  touch(list);
+});
+
+app.addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset.field !== 'ref') return;
+  const it = current.list.items[+el.dataset.idx];
+  const r = parseRefs(el.value).refs[0];
+  if (r) { it.ref = r; touch(current.list); el.value = label(r, true); el.classList.remove('bad'); }
+  else { el.classList.add('bad'); toast('Couldn’t read that reference'); el.value = label(it.ref, true); }
+});
+
+app.addEventListener('keydown', e => {
+  const t = e.target;
+  if ((e.metaKey || e.ctrlKey) && t.closest?.('.md') && MARK[e.key.toLowerCase()]) {
+    e.preventDefault();
+    return applyMd(t, e.key.toLowerCase());
+  }
+  if (t.id !== 'addRefs') return;
+  if (ac.items.length) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      ac.sel = (ac.sel + (e.key === 'ArrowDown' ? 1 : -1) + ac.items.length) % ac.items.length;
+      return renderAc();
+    }
+    if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); return pickAc(ac.sel); }
+    if (e.key === 'Escape') { e.preventDefault(); return hideAc(); }
+  }
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    app.querySelector('[data-act="add"]').click();
+  }
+});
+
+app.addEventListener('focusout', e => { if (e.target.id === 'addRefs') hideAc(); });
+
+document.addEventListener('keydown', e => {
+  if (current.view !== 'present' || e.target.closest?.('select')) return;
+  const sheet = document.getElementById('sheet');
+  if (e.key === 'Escape' && sheet && !sheet.hidden) return toggleSheet(false);
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(current.idx + 1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(current.idx - 1); }
+  else if (e.key === 'Escape') location.hash = current.list.id === 'shared' ? '#/shared' : '#/list/' + current.list.id;
+});
+
+let touchStart = null;
+app.addEventListener('touchstart', e => {
+  if (current.view === 'present' && e.target.closest('#slide')) touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+app.addEventListener('touchend', e => {
+  if (!touchStart) return;
+  const dx = e.changedTouches[0].clientX - touchStart.x;
+  const dy = e.changedTouches[0].clientY - touchStart.y;
+  touchStart = null;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(current.idx + (dx < 0 ? 1 : -1));
+});
+
+window.addEventListener('hashchange', () => { document.getElementById('toast').classList.remove('show'); route(); });
+route();
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
