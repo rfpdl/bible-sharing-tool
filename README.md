@@ -1,6 +1,9 @@
 # Bible Sharing Tool
 
 Prepare a list of Bible passages, add notes, and step through them while reading together.
+
+**▶ Use it: [bible.poncethelion.com](https://bible.poncethelion.com)**: works in any browser, installable on your phone, no account needed.
+
 Static PWA: no backend, studies are saved in the browser's localStorage, share links carry the whole study in the URL.
 
 - Verse text: KJV / WEB / WEBBE (public domain) from bible-api.com, cached on the device after first view
@@ -41,7 +44,7 @@ npx wrangler login            # first time only
 npx wrangler deploy
 ```
 
-The site will be at `https://bible-sharing-tool.<your-subdomain>.workers.dev`.
+Production: [bible.poncethelion.com](https://bible.poncethelion.com) (custom domain on the Worker).
 
 ## Install on your phone
 

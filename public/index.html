@@ -49,6 +49,7 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
+body { overflow-x: clip; }
 body {
   min-height: 100vh; background: var(--bg); color: var(--text);
   font: 16px/1.5 var(--sans); font-feature-settings: "cv11", "ss01";
@@ -103,9 +104,15 @@ a { color: var(--accent-ink); }
 .bar {
   position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px;
   margin: 0 -20px; padding: calc(10px + env(safe-area-inset-top)) 20px 10px;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
 }
+/* Transparent at the top of the page; a full-width frosted strip fades in once scrolled. */
+.bar::before, .stage-top::before {
+  content: ""; position: absolute; z-index: -1; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
+  background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 1px solid var(--stroke);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
+  opacity: 0; transition: opacity .25s ease; pointer-events: none;
+}
+html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
 .bar .grow { flex: 1; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -.02em; }
 .brand img { width: 30px; height: 30px; border-radius: 9px; box-shadow: var(--shadow); }
@@ -287,11 +294,7 @@ kbd {
 
 /* ---------- present ---------- */
 .stage { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
-.stage-top {
-  position: sticky; top: 0; z-index: 20; padding: calc(8px + env(safe-area-inset-top)) 16px 4px;
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3);
-}
+.stage-top { position: sticky; top: 0; z-index: 20; padding: calc(8px + env(safe-area-inset-top)) 16px 4px; }
 .stage-top-inner { max-width: 760px; margin: 0 auto; }
 .segments { display: flex; gap: 5px; }
 .seg { flex: 1; padding: 8px 0; cursor: pointer; }
@@ -1054,6 +1057,7 @@ function applyMd(ta, kind) {
 
 // ---------- Router ----------
 let current = { view: 'home' };
+let pendingFocus = null;  // element to focus right after the next render (no timer, so typing never races it)
 function route() {
   if (location.hash.startsWith('#share=')) {
     try { shared = decodeShare(location.hash.slice(7)); } catch (e) { shared = null; }
@@ -1074,6 +1078,8 @@ function route() {
   } else {
     current = { view: 'home' }; viewHome();
   }
+  if (pendingFocus) app.querySelector(pendingFocus)?.focus();
+  pendingFocus = null;
 }
 
 function go(idx) {
@@ -1102,8 +1108,8 @@ app.addEventListener('click', async e => {
   if (act === 'new') {
     const l = { id: uid(), title: '', notes: '', items: [], updated: Date.now() };
     db.lists.push(l); save();
+    pendingFocus = '.title-input';
     location.hash = '#/list/' + l.id;
-    setTimeout(() => document.getElementById('addRefs')?.focus(), 50);
   } else if (act === 'add') {
     const ta = document.getElementById('addRefs');
     const { refs, errors } = parseRefs(ta.value);
@@ -1214,8 +1220,11 @@ app.addEventListener('touchend', e => {
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) go(current.idx + (dx < 0 ? 1 : -1));
 });
 
+const onScroll = () => document.documentElement.classList.toggle('scrolled', window.scrollY > 4);
+window.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('hashchange', () => { document.getElementById('toast').classList.remove('show'); route(); });
 route();
+onScroll();
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   navigator.serviceWorker.register('sw.js').catch(() => {});

@@ -1,5 +1,5 @@
 // Caches the app shell so Bible Sharing Tool opens offline. Bump VERSION when shipping changes.
-const VERSION = 'bst-v4';
+const VERSION = 'bst-v6';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png',
   './fonts/inter-normal.woff2', './fonts/newsreader-normal.woff2', './fonts/newsreader-italic.woff2'];
 
