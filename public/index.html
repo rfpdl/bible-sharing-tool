@@ -132,7 +132,7 @@ a { color: var(--accent-ink); }
 html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
 .bar .grow { flex: 1; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -.02em; }
-.brand img { width: 30px; height: 30px; border-radius: 9px; box-shadow: var(--shadow); }
+.brand img { width: 28px; height: 26px; filter: drop-shadow(0 0 10px rgba(242,179,90,.25)); }
 
 /* ---------- home ---------- */
 .hero { padding: 36px 0 8px; animation: rise .6s var(--ease) both; }
@@ -835,7 +835,7 @@ function viewHome() {
   const lists = [...db.lists].sort((a, b) => b.updated - a.updated);
   app.innerHTML = `<div class="wrap">
     <header class="bar">
-      <div class="brand"><img src="icon.svg" alt="">Bible Sharing</div>
+      <div class="brand"><img src="mark.svg" alt="">Bible Sharing</div>
       <span class="grow"></span>
       <a class="btn icon ghost" href="#/settings" aria-label="Settings">${icon('gear')}</a>
     </header>

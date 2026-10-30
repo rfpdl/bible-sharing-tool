@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 112 352 324">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcdc9c"/><stop offset=".55" stop-color="#f2b35a"/><stop offset="1" stop-color="#dc8a33"/>
+    </linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bdb3ff"/><stop offset="1" stop-color="#8576f0"/>
+    </linearGradient>
+  </defs>
+  <!-- the app icon without its tile, for use on the app's own dark background -->
+  <circle cx="158" cy="200" r="36" fill="url(#head)" opacity=".85"/>
+  <circle cx="256" cy="156" r="40" fill="url(#head)"/>
+  <circle cx="354" cy="200" r="36" fill="url(#head)" opacity=".85"/>
+  <path d="M248 292C200 262 150 258 96 272v130c54-14 104-10 152 20z" fill="url(#gold)"/>
+  <path d="M264 292c48-30 98-34 152-20v130c-54-14-104-10-152 20z" fill="url(#gold)"/>
+</svg>
