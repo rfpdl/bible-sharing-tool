@@ -281,9 +281,12 @@ try {
     // offline before the Bible is saved: a passage never opened explains itself and still offers "Open in"
     const cold = await browser.newContext({ ...PHONE });
     await cold.route('**/bible/*.json', r => r.abort());
+    // the editor pre-loads the passage from the API; keep it out of the browser's HTTP cache too
+    await cold.route(`https://${API_HOST}/**`, r => r.abort());
     const c = await cold.newPage();
     const cid = await makeStudy(c, BASE, 'Cold', 'Phil 4:6-7');
     await c.evaluate(() => { localStorage.setItem('bst:text2', '{}'); });
+    await swReady(c);
     await cold.setOffline(true);
     await c.reload(); await c.goto(`${BASE}#/present/${cid}/0`); await hasText(c);
     check('offline before saving: friendly message, "Open in" still there',
