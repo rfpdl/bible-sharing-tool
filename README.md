@@ -10,7 +10,7 @@ Static PWA: no backend, studies are saved in the browser's localStorage, share l
 
 Everything runs in your browser. There is no account, no server and no database, so your studies, notes and readers' names never leave your device, and nobody (including me) can see them.
 
-- **Verse text** is fetched from the [Free Use Bible API](https://bible.helloao.org). Only the translation and chapter (e.g. "BSB, Philippians 4") are sent, never your notes.
+- **Verse text** comes from the [Free Use Bible API](https://bible.helloao.org) until the whole translation is saved on the device (in the background, on the first visit). Only the translation and chapters of the studies you open (e.g. "BSB, Philippians 4") are sent, never your notes.
 - **"Open in"** goes to Bible.com, and only when you tap it.
 - **Share links** carry the study inside the link (after the `#`, which browsers never send to a server). Nothing is uploaded, but anyone you send the link to can read it.
 - **No ads, no analytics, no tracking.** Fonts are self-hosted; the [Content Security Policy](public/_headers) only allows the app's own files and the Bible API.
@@ -19,7 +19,7 @@ Everything runs in your browser. There is no account, no server and no database,
 
 Full text: [Privacy & Terms](https://bible.poncethelion.com/#/legal).
 
-- Verse text: BSB (default) / WEB / KJV, all public domain, from the [Free Use Bible API](https://bible.helloao.org), cached on the device after first view
+- Verse text: BSB (default) / WEB / KJV, all public domain, from the [Free Use Bible API](https://bible.helloao.org) at first. In the background the app saves the whole translation you use (Old and New Testament in parallel, about 1 MB to download, from `public/bible/`, built with `node scripts/build-bible.mjs`) so the entire Bible works offline. Words of Jesus show in red where the translation marks them (WEB, KJV)
 - Other translations (NIV, ESV, NKJV, NASB…): the "Open in" button opens the passage on Bible.com; pick which one on the reading screen
 
 <p align="center">
@@ -36,6 +36,11 @@ public/          ← everything that gets deployed
   index.html     the whole app
   sw.js          offline cache (bump VERSION when shipping changes)
   _headers       Cloudflare headers: security, caching, noindex
+  bible/         whole Old/New Testament per translation, saved on devices for offline use
+scripts/
+  build-bible.mjs  rebuilds public/bible/ from the Free Use Bible API
+tests/
+  run.mjs        end-to-end checks: functional, performance (throttled phone) and usability
 wrangler.toml    Cloudflare Workers config (static assets from public/)
 ```
 
@@ -43,6 +48,14 @@ wrangler.toml    Cloudflare Workers config (static assets from public/)
 
 ```sh
 npx wrangler dev              # http://localhost:8787
+```
+
+To run the checks (needs Chrome and a network connection, since verse text comes from the Bible API):
+
+```sh
+npm install
+npm test                                          # against wrangler dev, with the real headers
+BASE_URL=https://bible.poncethelion.com npm test  # against the live site
 ```
 
 ## Deploy to Cloudflare

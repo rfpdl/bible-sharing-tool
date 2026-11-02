@@ -45,7 +45,7 @@
   --accent: #b7791f; --accent-ink: #8a5a12; --accent-soft: rgba(183,121,31,.12); --violet: #6d5ae6;
   --btn-bg: #17161a; --btn-text: #ffffff; --btn-glow: rgba(23,22,26,.18);
   --solid: #ffffff; --glow-1: rgba(109,90,230,.16); --glow-2: rgba(240,170,80,.22); --grain: .035;
-  --danger: #c0362c; --shadow: 0 1px 2px rgba(23,22,26,.04), 0 12px 32px -12px rgba(23,22,26,.14);
+  --danger: #c0362c; --wj: #b3261e; --shadow: 0 1px 2px rgba(23,22,26,.04), 0 12px 32px -12px rgba(23,22,26,.14);
   --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --serif: "Newsreader", ui-serif, "New York", Georgia, serif;
   --ease: cubic-bezier(.2,.8,.2,1);
@@ -59,7 +59,7 @@
     --accent: #f2b35a; --accent-ink: #f6c47a; --accent-soft: rgba(242,179,90,.12); --violet: #9b8cff;
     --btn-bg: linear-gradient(135deg, #f8cd85, #e8963a); --btn-text: #1c1206; --btn-glow: rgba(242,179,90,.28);
     --solid: #18181e; --glow-1: rgba(124,108,246,.20); --glow-2: rgba(242,179,90,.11); --grain: .05;
-    --danger: #ff8a80; --shadow: 0 20px 40px -20px rgba(0,0,0,.6);
+    --danger: #ff8a80; --wj: #ff9a8b; --shadow: 0 20px 40px -20px rgba(0,0,0,.6);
     color-scheme: dark;
   }
 }
@@ -110,6 +110,7 @@ a { color: var(--accent-ink); }
 .btn.ghost:hover { background: var(--field); }
 .btn.icon { width: 44px; padding: 0; border-radius: 14px; }
 .btn.sm { min-height: 38px; padding: 0 14px; font-size: 14px; border-radius: 12px; }
+@media (pointer: coarse) { .btn.sm { min-height: 44px; } }   /* comfortable to tap on phones */
 .btn.icon.sm { width: 38px; padding: 0; }
 .btn.xs { min-height: 32px; width: 32px; padding: 0; border-radius: 10px; }
 .btn.xs .ic, .btn.sm .ic { width: 18px; height: 18px; }
@@ -198,6 +199,32 @@ html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
 .privacy-chip:hover { border-color: var(--stroke-2); color: var(--text); }
 .privacy-chip .ic { width: 16px; height: 16px; color: var(--accent); }
 .hero .privacy-chip { display: flex; width: fit-content; }
+
+/* "Add to Home Screen" strip at the top of the home screen */
+.install {
+  display: flex; align-items: center; gap: 10px; margin-top: 6px; padding: 10px 6px 10px 16px;
+  border-radius: 18px; background: var(--card); border: 1px solid var(--stroke); box-shadow: var(--shadow);
+  animation: rise .6s .1s var(--ease) both;
+}
+.install p { flex: 1; margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--text-2); }
+.install p b { color: var(--text); font-weight: 600; }
+.install .btn { flex: none; }
+.install-sheet p { margin: 4px 10px 0; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+.install-sheet .steps { margin: 14px 10px 6px; }
+.install-sheet .btn.block { margin-top: 16px; }
+.install-panel { padding: 18px; border-radius: 18px; background: var(--card); border: 1px solid var(--stroke); }
+.install-panel p { margin: 0 0 4px; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
+.steps { margin: 12px 0 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 10px; }
+.steps li { counter-increment: step; display: flex; align-items: center; gap: 10px; font-size: 14.5px; line-height: 1.4; }
+.steps li::before {
+  content: counter(step); flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font: 700 12px var(--sans); color: var(--accent-ink); background: var(--accent-soft);
+}
+.key {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; flex: none;
+  background: var(--field); border: 1px solid var(--stroke-2); color: var(--accent-ink);
+}
+.key .ic { width: 16px; height: 16px; }
 .facts { display: grid; gap: 16px; }
 .fact { display: flex; gap: 12px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
 .fact .ic { color: var(--accent); width: 18px; height: 18px; margin-top: 2px; }
@@ -369,7 +396,8 @@ select.pill:focus { box-shadow: 0 0 0 4px var(--accent-soft); }
   font: 400 clamp(21px, 5.4vw, 27px)/1.72 var(--serif); letter-spacing: -.005em; margin-top: 28px; max-width: 34em;
   text-wrap: pretty; font-optical-sizing: auto;
 }
-.scripture sup { font: 700 11px var(--sans); color: var(--accent); margin-right: 4px; vertical-align: .9em; }
+.scripture sup { font: 700 11px var(--sans); color: var(--accent-ink); margin-right: 4px; vertical-align: .9em; }
+.scripture .wj { color: var(--wj); }   /* words of Jesus */
 .scripture .err-text { font: 16px var(--sans); color: var(--muted); }
 .sk { display: grid; gap: 14px; margin-top: 34px; }
 .sk i {
@@ -526,9 +554,9 @@ JAS|James|Jas|jm
 JUD|Jude|Jude|jud jd
 REV|Revelation|Rev|re revelations apocalypse`;
 
-const BOOKS = BOOK_SRC.split('\n').map(line => {
+const BOOKS = BOOK_SRC.split('\n').map((line, i) => {
   const [id, name, short, aliases] = line.split('|');
-  return { id, name, short, aliases: aliases.split(' ') };
+  return { id, name, short, aliases: aliases.split(' '), nt: i >= 39 };
 });
 const BOOK_BY_ID = new Map(BOOKS.map(b => [b.id, b]));
 const SINGLE_CHAPTER = new Set(['OBA', 'PHM', '2JN', '3JN', 'JUD']);
@@ -617,8 +645,8 @@ function label(r, full) {
 }
 
 // ---------- Scripture sources ----------
-// Public-domain text shown inline, fetched from the Free Use Bible API (bible.helloao.org).
-// `api` is that API's translation id.
+// Public-domain text shown inline: from the Free Use Bible API (bible.helloao.org) until the whole translation
+// is saved on the device (see BIBLE_CACHE). `api` is that API's translation id.
 const INLINE = [
   { id: 'bsb', api: 'BSB', name: 'BSB', desc: 'Berean Standard Bible — modern and accurate, reads much like the NIV' },
   { id: 'web', api: 'ENGWEBP', name: 'WEB', desc: 'World English Bible — modern English, easy to read aloud' },
@@ -656,7 +684,10 @@ function yvUrl(r) {
 
 // ---------- Storage (localStorage only; older "versedeck" keys are migrated) ----------
 const KEY = 'bst:v1', OLD_KEY = 'versedeck:v1';
-const TEXT_KEY = 'bst:text', OLD_TEXT_KEY = 'versedeck:text';
+// v2 of the text cache keeps the words of Jesus marked. Older caches carry BSB passages over (BSB has no
+// red letters, so they're unchanged) and drop the rest, which are refilled as passages are opened.
+const TEXT_KEY = 'bst:text2', OLD_TEXT_KEYS = ['bst:text', 'versedeck:text'];
+const TEXT_CACHE_MAX = 300;   // passages kept in localStorage; the saved whole Bible covers the rest
 
 function readJson(...keys) {
   for (const k of keys) {
@@ -666,20 +697,104 @@ function readJson(...keys) {
 }
 
 // Passages already shown are kept on the device, so prepared studies work offline.
-// Keys are "<translation>|<BOOK> <ref>"; entries from the old source used other keys and are simply never hit.
-let textCache = readJson(TEXT_KEY, OLD_TEXT_KEY) || {};
+// Keys are "<translation>|<BOOK> <ref>".
+let textCache = readJson(TEXT_KEY);
+if (!textCache) {
+  const old = readJson(...OLD_TEXT_KEYS) || {};
+  textCache = Object.fromEntries(Object.entries(old).filter(([k, v]) => k.startsWith('bsb|') && Array.isArray(v)));
+  storeTextCache();
+}
+try { OLD_TEXT_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) {}
+
+// Studies matter more than cached text: keep the cache bounded, and if storage is full, give up the cache.
+function storeTextCache() {
+  const keys = Object.keys(textCache);
+  for (const k of keys.slice(0, Math.max(0, keys.length - TEXT_CACHE_MAX))) delete textCache[k];
+  try { localStorage.setItem(TEXT_KEY, JSON.stringify(textCache)); }
+  catch (e) { try { localStorage.removeItem(TEXT_KEY); } catch (e2) {} }
+}
 const chapterCache = new Map();
 
-// The API returns whole chapters; each verse is a list of strings and {text} / {noteId} / {lineBreak} parts.
-async function getChapter(api, book, c) {
-  const k = `${api}/${book}/${c}`;
-  if (!chapterCache.has(k)) {
-    chapterCache.set(k, fetch(`${TEXT_API}/${k}.json`).then(res => {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+// Each translation's Old and New Testament (bible/<id>-ot.json and -nt.json, about 0.7 MB and 0.24 MB to
+// download) are saved in Cache Storage, in parallel, once the page is idle. Until a testament is saved, each
+// chapter comes from the Free Use Bible API, so the first visit is quick; after that, text is read from the saved
+// copy and the whole Bible works offline.
+const BIBLE_CACHE = 'bst-bible-v1';   // also kept by sw.js; bump both when the text files are rebuilt
+const TESTAMENTS = ['nt', 'ot'];
+const savedParts = new Map();         // "<translation>-<ot|nt>" -> Promise of { BOOK: [chapter 1 verses, …] }
+const savingBibles = new Set();
+
+const partFile = (t, part) => `bible/${t}-${part}.json`;
+const testament = book => (BOOK_BY_ID.get(book).nt ? 'nt' : 'ot');
+
+function savedPart(t, part) {
+  if (!window.caches) return Promise.reject(new Error('no Cache Storage'));
+  const k = `${t}-${part}`;
+  if (!savedParts.has(k)) {
+    savedParts.set(k, caches.open(BIBLE_CACHE).then(c => c.match(partFile(t, part))).then(res => {
+      if (!res) throw new Error('not saved yet');
       return res.json();
-    }).then(j => j.chapter.content.filter(x => x.type === 'verse').map(x => ({
-      c, v: x.number,
-      t: x.content.map(p => (typeof p === 'string' ? p : p.text || '')).join(' ').replace(/\s+/g, ' ').trim(),
+    }).catch(err => { savedParts.delete(k); throw err; }));
+  }
+  return savedParts.get(k);
+}
+
+async function savedStatus(t) {
+  if (!window.caches) return false;
+  const cache = await caches.open(BIBLE_CACHE);
+  return (await Promise.all(TESTAMENTS.map(part => cache.match(partFile(t, part))))).every(Boolean);
+}
+
+async function saveBibleOffline(t = db.settings.inline) {
+  if (t === 'off' || !window.caches || savingBibles.has(t)) return;
+  savingBibles.add(t);
+  try {
+    const cache = await caches.open(BIBLE_CACHE);
+    await Promise.all(TESTAMENTS.map(async part => {
+      // `reload` skips the HTTP cache, so a rebuilt text (new BIBLE_CACHE) isn't filled from an older copy.
+      if (!(await cache.match(partFile(t, part))) && navigator.onLine) await cache.add(new Request(partFile(t, part), { cache: 'reload' }));
+    }));
+  } catch (e) {}   // whatever is missing is tried again on the next visit
+  savingBibles.delete(t);
+  if (current.view === 'settings') showOfflineStatus();
+}
+
+// The API's verse content is strings and {text, wordsOfJesus?} parts ({noteId} and {lineBreak} carry no text).
+// Read into the saved files' shape (scripts/build-bible.mjs): [number, ...parts], a part being a string, or a
+// one-string array for the words of Jesus.
+function apiVerse(x) {
+  const parts = [];
+  for (const p of x.content) {
+    const text = (typeof p === 'string' ? p : p.text || '').replace(/¶/g, '').replace(/\s+/g, ' ').trim();
+    if (!text) continue;
+    const jesus = typeof p === 'object' && !!p.wordsOfJesus;
+    const last = parts[parts.length - 1];
+    if (last && last.jesus === jesus) last.text += ' ' + text;
+    else parts.push({ text, jesus });
+  }
+  return [x.number, ...parts.map(p => (p.jesus ? [p.text] : p.text))];
+}
+
+// Verses keep the plain text in `t`, plus the parts in `p` when some are the words of Jesus.
+async function getChapter(t, book, c) {
+  const k = `${t}/${book}/${c}`;
+  if (!chapterCache.has(k)) {
+    chapterCache.set(k, savedPart(t, testament(book)).then(bible => bible[book][c - 1]).catch(() => null).then(async saved => {
+      if (saved) return saved;
+      try {
+        const res = await fetch(`${TEXT_API}/${INLINE.find(x => x.id === t).api}/${book}/${c}.json`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return (await res.json()).chapter.content.filter(x => x.type === 'verse').map(apiVerse);
+      } catch (err) {
+        // the testament may have finished saving while this request was out
+        const bible = await savedPart(t, testament(book)).catch(() => null);
+        if (bible?.[book]?.[c - 1]) return bible[book][c - 1];
+        throw err;
+      }
+    }).then(verses => verses.map(([v, ...parts]) => ({
+      c, v,
+      t: parts.map(x => (typeof x === 'string' ? x : x[0])).join(' '),
+      ...(parts.some(Array.isArray) ? { p: parts } : {}),
     }))).catch(err => { chapterCache.delete(k); throw err; }));
   }
   return chapterCache.get(k);
@@ -688,10 +803,9 @@ async function getChapter(api, book, c) {
 async function getPassage(r, t) {
   const key = t + '|' + r.b + ' ' + suffix(r);
   if (textCache[key]) return textCache[key];
-  const api = INLINE.find(x => x.id === t).api;
   const verses = [];
   for (let c = r.c1; c <= r.c2; c++) {
-    for (const v of await getChapter(api, r.b, c)) {
+    for (const v of await getChapter(t, r.b, c)) {
       if (r.v1 != null && c === r.c1 && v.v < r.v1) continue;
       if (r.v1 != null && c === r.c2 && v.v > (r.v2 ?? (r.c2 === r.c1 ? r.v1 : Infinity))) continue;
       verses.push(v);
@@ -699,8 +813,16 @@ async function getPassage(r, t) {
   }
   if (!verses.length) throw new Error('No verses found');
   textCache[key] = verses;
-  try { localStorage.setItem(TEXT_KEY, JSON.stringify(textCache)); } catch (e) {}
+  storeTextCache();
   return verses;
+}
+
+// Load every passage of a study in the background (each chapter is fetched once), so Next is instant
+// and the study keeps working if the connection drops mid-way.
+function warmStudy(list) {
+  const t = db.settings.inline;
+  if (t === 'off') return;
+  for (const it of list.items) getPassage(it.ref, t).catch(() => {});
 }
 
 let db = loadDb();
@@ -719,7 +841,13 @@ function loadDb() {
   }
   return { lists: [], settings: { inline: 'bsb', yv: '111', yvCustom: '', textV: 2 } };
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) {} }
+function save() {
+  const data = JSON.stringify(db);
+  try { localStorage.setItem(KEY, data); return; } catch (e) {}
+  // Storage is full: free the cached passages (they can be fetched again) and retry.
+  try { localStorage.removeItem(TEXT_KEY); localStorage.setItem(KEY, data); }
+  catch (e) { toast('Couldn’t save: this browser’s storage is full. Export a backup in Settings.'); }
+}
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function getList(id) { return id === 'shared' ? shared : db.lists.find(l => l.id === id); }
 
@@ -765,6 +893,8 @@ function md(s) {
 
 const ICONS = {
   plus: '<path d="M12 5v14M5 12h14"/>',
+  addhome: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
   back: '<path d="M15 18l-6-6 6-6"/>',
   next: '<path d="M9 18l6-6-6-6"/>',
@@ -831,6 +961,74 @@ const FAN = [
   { ref: 'Philippians 4:6–7', text: 'In nothing be anxious, but in everything, by prayer…', x: '0%', r: '-1deg', d: '.05s', n: 1 },
 ];
 
+// ---------- Add to Home Screen ----------
+// Installed, the app opens like an app, and iPhone/iPad no longer clear its data after 7 days without a visit.
+// Chrome's own install banner is suppressed; the strip on the home screen (and Settings) offers it instead.
+let installEvent = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; if (['home', 'settings'].includes(current.view)) route(); });
+window.addEventListener('appinstalled', () => { installEvent = null; route(); });
+
+function installMode() {
+  const ua = navigator.userAgent;
+  // ?install=prompt|ios|inapp|menu shows that version of the strip, to preview it on a computer
+  const preview = new URLSearchParams(location.search).get('install');
+  if (preview) return preview;
+  if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) return 'installed';
+  if (/FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\/|MicroMessenger/i.test(ua)) return 'inapp';
+  if (installEvent) return 'prompt';
+  if (/iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/.test(ua)) return 'menu';
+  return null;   // a computer whose browser can't install it: nothing to suggest
+}
+
+function installHelp(mode) {
+  if (mode === 'prompt') return `<button class="btn primary sm" data-act="install">${icon('addhome')} Install app</button>`;
+  if (mode === 'ios') return `<ol class="steps">
+      <li><span>Tap</span><span class="key">${icon('share')}</span><span><b>Share</b> in the browser bar</span></li>
+      <li><span>Choose</span><span class="key">${icon('addhome')}</span><b>Add to Home Screen</b></li>
+    </ol>`;
+  if (mode === 'inapp') return `<ol class="steps">
+      <li><span>Tap</span><span class="key">${icon('more')}</span><span>at the top, then <b>Open in browser</b></span></li>
+      <li><span>Add it to your Home Screen from there</span></li>
+    </ol>`;
+  if (mode === 'menu') return `<ol class="steps">
+      <li><span>Open the browser menu</span><span class="key">${icon('more')}</span></li>
+      <li><span>Choose <b>Install app</b> or <b>Add to Home screen</b></span></li>
+    </ol>`;
+  return '';
+}
+
+// Shown once there's a study worth keeping. On iPhone/iPad it warns that Safari may clear them;
+// elsewhere the data isn't at risk, so it just offers the app. ✕ hides it for 7 days.
+const INSTALL_SNOOZE = 7 * 864e5;
+function installStrip(hasStudies) {
+  const mode = installMode();
+  const preview = new URLSearchParams(location.search).has('install');
+  if (!mode || mode === 'installed') return '';
+  if (!preview && (!hasStudies || Date.now() - (db.settings.installLater || 0) < INSTALL_SNOOZE)) return '';
+  const atRisk = mode === 'ios' || (mode === 'inapp' && (preview || /iPhone|iPad|iPod/.test(navigator.userAgent)));
+  const text = mode === 'inapp'
+    ? '<b>Your studies are saved only on this phone.</b> Open this page in your browser to add it to your Home Screen.'
+    : atRisk
+      ? '<b>Your studies are saved only on this phone.</b> Add this app to your Home Screen so they don’t get cleared.'
+      : '<b>Add to Home Screen.</b> Opens like an app and works offline.';
+  return `<section class="install" aria-label="Add to Home Screen">
+    <p>${text}</p>
+    <button class="btn primary sm" data-act="${mode === 'prompt' ? 'install' : 'installHow'}">${mode === 'inapp' ? 'How' : 'Add'}</button>
+    <button class="btn icon ghost" data-act="installLater" aria-label="Not now" title="Not now">${icon('x')}</button>
+  </section>
+  <div class="sheet install-sheet" id="installSheet" hidden>
+    <div class="sheet-backdrop" data-act="installClose"></div>
+    <div class="sheet-panel" role="dialog" aria-label="Add to Home Screen">
+      <div class="grabber"></div>
+      <h3>Add to Home Screen</h3>
+      ${atRisk ? '<p>Safari can clear saved data from websites you haven’t opened in a while. Apps on your Home Screen are kept.</p>' : ''}
+      ${installHelp(mode)}
+      <button class="btn block" data-act="installClose">Done</button>
+    </div>
+  </div>`;
+}
+
 function viewHome() {
   const lists = [...db.lists].sort((a, b) => b.updated - a.updated);
   app.innerHTML = `<div class="wrap">
@@ -839,6 +1037,7 @@ function viewHome() {
       <span class="grow"></span>
       <a class="btn icon ghost" href="#/settings" aria-label="Settings">${icon('gear')}</a>
     </header>
+    ${installStrip(lists.length > 0)}
 
     <section class="hero">
       <h1>Read <em>together</em>,<br>passage by passage.</h1>
@@ -864,7 +1063,7 @@ function viewHome() {
   </div>`;
 }
 
-const LEGAL_UPDATED = '28 October 2026';
+const LEGAL_UPDATED = '2 November 2026';
 const SOURCE_URL = 'https://github.com/rfpdl/bible-sharing-tool';
 
 function viewLegal() {
@@ -879,10 +1078,12 @@ function viewLegal() {
 
     <h2>Privacy</h2>
     <h3>What is stored, and where</h3>
-    <p>Your studies, notes, readers’ names and settings are saved in your browser’s local storage, on this device only. Passages you’ve opened are kept there too so they work offline. There is no copy anywhere else.</p>
+    <p>Your studies, notes, readers’ names and settings are saved in your browser’s local storage, on this device only. Passages you’ve opened are kept there too, and the app saves the full text of the Bible translation you use (about 4 MB, downloaded once in the background) so the whole Bible works offline. There is no copy of your studies anywhere else.</p>
+    <h3>iPhone and iPad: the 7-day rule</h3>
+    <p>Safari (and every other browser on iPhone and iPad) may delete a website’s stored data, including your studies, if you haven’t opened it for 7 days. Adding the app to your Home Screen prevents this: <a href="#/settings/install">see how</a>. Exporting a backup now and then keeps you safe either way.</p>
     <h3>What leaves your device</h3>
     <ul>
-      <li><b>Bible text:</b> to show a passage, the app asks the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a> for the translation and chapter (for example “BSB, Philippians 4”). Your notes and names are never sent.</li>
+      <li><b>Bible text:</b> until the whole translation is saved on your device (in the background, on your first visit), the app asks the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a> for the chapters in the studies you open (for example “BSB, Philippians 4”), so it can see which chapters a study uses. After that, text comes from the copy on your device. Your notes, titles and names are never sent.</li>
       <li><b>“Open in” button:</b> opens the passage on Bible.com, only when you tap it. Bible.com’s own privacy policy applies there.</li>
       <li><b>Normal web traffic:</b> like any website, the servers that deliver the app (Cloudflare) and the Bible API receive your IP address and basic request details so they can respond. They don’t see your studies.</li>
     </ul>
@@ -897,7 +1098,7 @@ function viewLegal() {
     <ul>
       <li><b>Free to use</b> for personal and group Bible study.</li>
       <li><b>Provided as is.</b> The app may change or be unavailable at times, and comes with no warranty.</li>
-      <li><b>Keep your own backups.</b> Your studies live only on your device, so they can be lost if browser data is cleared or a device is lost. Use <a href="#/settings/privacy">Export backup</a> now and then. We can’t recover lost studies.</li>
+      <li><b>Keep your own backups.</b> Your studies live only on your device, so they can be lost if browser data is cleared, a device is lost, or, on iPhone and iPad, the app isn’t opened for 7 days unless it’s on your Home Screen. Use <a href="#/settings/privacy">Export backup</a> now and then. We can’t recover lost studies.</li>
       <li><b>Your content is yours,</b> and you’re responsible for what you put in studies you share.</li>
     </ul>
 
@@ -906,12 +1107,22 @@ function viewLegal() {
       <li><b>BSB</b>: Berean Standard Bible, public domain (<a href="https://berean.bible" target="_blank" rel="noopener">berean.bible</a>).</li>
       <li><b>WEB</b>: World English Bible, public domain (<a href="https://worldenglish.bible" target="_blank" rel="noopener">worldenglish.bible</a>).</li>
       <li><b>KJV</b>: King James Version, public domain (outside the UK, where it is under Crown patent).</li>
-      <li>Delivered by the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a>.</li>
+      <li>Text from the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a>; the whole translations are also served with this app so they can be saved for offline use. Words of Jesus are shown in red where the translation marks them (WEB and KJV).</li>
       <li>NIV, ESV, NKJV, NASB and other translations are copyrighted by their publishers. This app doesn’t copy them; “Open in” shows them on Bible.com under its terms.</li>
       <li>Fonts: Inter and Newsreader, SIL Open Font License.</li>
     </ul>
     <p class="hint">If this page changes, the date at the top changes too.</p>
   </div>`;
+}
+
+async function showOfflineStatus() {
+  const el = document.getElementById('offlineStatus'), t = db.settings.inline;
+  if (!el || t === 'off' || !window.caches) return;
+  const name = INLINE.find(x => x.id === t).name;
+  const saved = await savedStatus(t).catch(() => false);
+  el.textContent = saved ? `✓ The whole ${name} Bible is saved on this device, so it works offline.`
+    : savingBibles.has(t) ? `Saving the whole ${name} Bible on this device for offline use…`
+    : `The whole ${name} Bible will be saved on this device for offline use when you’re online.`;
 }
 
 function viewSettings() {
@@ -928,6 +1139,16 @@ function viewSettings() {
         <div><b>${t.name}</b><span>${t.desc}</span></div>
       </label>`).join('')}
     <p class="hint">These translations are public domain, so they can be shown here for free.</p>
+    <p class="hint" id="offlineStatus"></p>
+
+    ${(() => {
+      const mode = installMode();
+      if (!mode) return '';
+      return `<div class="section" id="install"><h2>Home Screen</h2></div>
+      <div class="install-panel">${mode === 'installed'
+        ? `<p>✓ Installed. You’re using the app from your Home Screen.</p>`
+        : `<p>Add the app to your Home Screen so it opens like an app and works offline. On iPhone and iPad this also stops Safari from clearing your studies after 7 days without a visit.</p>${installHelp(mode)}`}</div>`;
+    })()}
 
     <div class="section"><h2>“Open in” button</h2></div>
     <div class="panel">
@@ -942,7 +1163,7 @@ function viewSettings() {
     <div class="section" id="privacy"><h2>Privacy &amp; your data</h2></div>
     <div class="panel facts">
       <div class="fact">${icon('lock')}<div><b>Everything stays on this device.</b> No account, no server, no database. Your studies, notes and readers’ names are never sent anywhere, so nobody (including us) can see them.</div></div>
-      <div class="fact">${icon('book')}<div><b>Verse text comes from the Free Use Bible API.</b> Only the translation and chapter (like “BSB, Philippians 4”) are sent, never your notes. “Open in” takes you to Bible.com only when you tap it.</div></div>
+      <div class="fact">${icon('book')}<div><b>Verse text comes from the Free Use Bible API until your Bible is saved on this device.</b> Only the translation and chapters (like “BSB, Philippians 4”) are sent, never your notes. “Open in” takes you to Bible.com only when you tap it.</div></div>
       <div class="fact">${icon('share')}<div><b>Share links carry the study inside the link.</b> Nothing is uploaded, but anyone you send the link to can read it, so keep private notes out of studies you share.</div></div>
       <div class="fact">${icon('eyeoff')}<div><b>No ads, no analytics, no tracking.</b></div></div>
       <div class="fact">${icon('github')}<div><b>Don’t just take our word for it.</b> The code is public: <a href="${SOURCE_URL}" target="_blank" rel="noopener">see it on GitHub</a>.</div></div>
@@ -963,6 +1184,7 @@ function viewSettings() {
 }
 
 function viewEdit(list) {
+  warmStudy(list);
   app.innerHTML = `<div class="wrap">
     <header class="bar">
       <a class="btn icon ghost" href="#/" aria-label="Back to studies">${icon('back')}</a>
@@ -1016,6 +1238,7 @@ function viewEdit(list) {
 
 function viewShared() {
   const list = shared;
+  warmStudy(list);
   app.innerHTML = `<div class="wrap">
     <header class="bar">
       <a class="btn sm ghost" href="#/">${icon('back')} My studies</a>
@@ -1113,15 +1336,15 @@ function viewPresent(list, idx) {
     document.getElementById('scripture').innerHTML = verses.map(v => {
       const num = (lastC != null && v.c !== lastC) ? `${v.c}:${v.v}` : v.v;
       lastC = v.c;
-      return `<sup>${num}</sup>${esc(v.t)}`;
+      const text = v.p ? v.p.map(x => (typeof x === 'string' ? esc(x) : `<span class="wj">${esc(x[0])}</span>`)).join(' ') : esc(v.t);
+      return `<sup>${num}</sup>${text}`;
     }).join(' ');
   }).catch(() => {
     if (token !== slideToken) return;
     document.getElementById('scripture').innerHTML =
       `<span class="err-text">Couldn’t load the text (are you offline?). Use “Open in” below.</span>`;
   });
-  // Warm the next passage so it appears instantly.
-  if (idx + 1 < n) getPassage(list.items[idx + 1].ref, inline).catch(() => {});
+  warmStudy(list);
 }
 
 function toggleSheet(open) {
@@ -1269,7 +1492,7 @@ function route() {
   } else if (view === 'legal') {
     current = { view }; viewLegal();
   } else if (view === 'settings') {
-    current = { view }; viewSettings();
+    current = { view }; viewSettings(); showOfflineStatus();
     if (id) document.getElementById(id)?.scrollIntoView({ block: 'start' });
   } else if (view === 'present' && list && list.items.length) {
     const idx = Math.min(Math.max(parseInt(i, 10) || 0, 0), list.items.length - 1);
@@ -1346,6 +1569,9 @@ app.addEventListener('click', async e => {
   else if (act === 'next') go(current.idx + 1);
   else if (act === 'goto') go(idx);
   else if (act === 'export') exportBackup();
+  else if (act === 'install' && installEvent) { installEvent.prompt(); installEvent.userChoice.finally(() => { installEvent = null; route(); }); }
+  else if (act === 'installHow' || act === 'installClose') document.getElementById('installSheet').hidden = act === 'installClose';
+  else if (act === 'installLater') { db.settings.installLater = Date.now(); save(); route(); }
   else if (act === 'jump') toggleSheet(true);
   else if (act === 'closeJump') toggleSheet(false);
 });
@@ -1355,6 +1581,7 @@ app.addEventListener('input', e => {
   if (el.id === 'addRefs') return updateAc(el);
   if (el.dataset.setting) {
     db.settings[el.dataset.setting] = el.value; save();
+    if (el.dataset.setting === 'inline') saveBibleOffline();
     if (el.tagName === 'SELECT' || el.type === 'radio') route();
     return;
   }
@@ -1425,6 +1652,9 @@ const onScroll = () => document.documentElement.classList.toggle('scrolled', win
 window.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('hashchange', () => { document.getElementById('toast').classList.remove('show'); route(); });
 route();
+// Save the whole translation for offline use once the first screen has settled.
+setTimeout(() => (window.requestIdleCallback || (f => f()))(() => saveBibleOffline()), 2500);
+window.addEventListener('online', () => saveBibleOffline());
 onScroll();
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {

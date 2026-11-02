@@ -1,5 +1,7 @@
 // Caches the app shell so Bible Sharing Tool opens offline. Bump VERSION when shipping changes.
-const VERSION = 'bst-v16';
+const VERSION = 'bst-v18';
+// The page saves the whole Bible translation here (BIBLE_CACHE in index.html); app updates must not delete it.
+const BIBLE = 'bst-bible-v1';
 // The page is cached under './' only: Cloudflare redirects /index.html to /, and a cached
 // redirect can't be used to answer a navigation, which would break opening the app offline.
 const PAGE = './';
@@ -13,17 +15,18 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== BIBLE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
 // Pages: network first so a new deploy shows up immediately, cache when offline.
 // Other same-origin files: cache first, refreshed in the background.
-// Verse text (bible.helloao.org) is cached by the page in localStorage, so it passes through here.
+// Bible text (bible/…) passes through: the page keeps passages in localStorage and the whole translation in
+// BIBLE, so caching chapters here too would only duplicate them.
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/bible/')) return;
 
   if (e.request.mode === 'navigate') {
     e.respondWith(

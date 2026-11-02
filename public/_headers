@@ -21,3 +21,7 @@
 
 /og.jpg
   Cache-Control: public, max-age=86400
+
+# Bible text: whole public-domain testaments that rarely change (rebuilt by scripts/build-bible.mjs).
+/bible/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400

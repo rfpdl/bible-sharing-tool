@@ -1,0 +1,14 @@
+{
+  "name": "bible-sharing-tool",
+  "private": true,
+  "description": "Static PWA; nothing to build. Dev tooling only.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "node tests/run.mjs",
+    "build:bible": "node scripts/build-bible.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.48.2",
+    "wrangler": "4.45.0"
+  }
+}
