@@ -440,6 +440,29 @@ try {
     await rm.close();
     await ctx.close();
   }
+
+  // Add to Home Screen strip, as Safari on an iPhone (detected from the browser, no ?install= preview)
+  {
+    const ip = await browser.newContext({ ...PHONE, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
+    const p = await ip.newPage();
+    const w = watch(p);
+    await p.goto(BASE);
+    check('iPhone: no install strip before the first study', !(await p.$('.install')));
+    await makeStudy(p, BASE, 'Install', 'John 1:1');
+    await p.goto(`${BASE}#/`);
+    check('iPhone: strip warns once there’s a study', await until(p, () => /saved only on this phone/.test(document.querySelector('.install')?.innerText || '')));
+    await p.click('.install [data-act=installHow]');
+    check('iPhone: Add shows the Share → Add to Home Screen steps', await until(p, () => {
+      const s = document.getElementById('installSheet');
+      return !s.hidden && /Share/.test(s.innerText) && /Add to Home Screen/.test(s.innerText);
+    }));
+    await p.click('#installSheet .btn.block');
+    await p.click('.install [data-act=installLater]');
+    await p.reload();
+    check('iPhone: ✕ hides it, also after reload', await until(p, () => !!document.querySelector('.hero')) && !(await p.$('.install')));
+    check('iPhone strip: no errors', w.errors.length === 0, w.errors.join(' | '));
+    await ip.close();
+  }
 } finally {
   await browser.close();
   server?.kill();
