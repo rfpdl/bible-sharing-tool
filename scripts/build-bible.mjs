@@ -52,4 +52,4 @@ for (const [name, json] of Object.entries(files)) {
   await writeFile(new URL(name, OUT), json);
   console.log(name, (json.length / 1e6).toFixed(2), 'MB');
 }
-console.log('If the text changed, bump BIBLE_CACHE in public/index.html and BIBLE in public/sw.js so devices save it again.');
+console.log('If the text changed, bump BIBLE_CACHE in public/index.html and BIBLE in public/sw.js so devices save it again (this also clears their cached passages).');

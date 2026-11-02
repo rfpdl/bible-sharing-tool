@@ -209,6 +209,10 @@ html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
 .install p { flex: 1; margin: 0; font-size: 13.5px; line-height: 1.4; color: var(--text-2); }
 .install p b { color: var(--text); font-weight: 600; }
 .install .btn { flex: none; }
+/* a native <dialog>: showModal() keeps focus inside, closes on Escape and hides the page from screen readers */
+dialog.install-sheet { width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: none; color: inherit; }
+dialog.install-sheet::backdrop { background: transparent; }
+.install-sheet .steps .btn { margin-left: auto; }
 .install-sheet p { margin: 4px 10px 0; color: var(--text-2); font-size: 14.5px; line-height: 1.5; }
 .install-sheet .steps { margin: 14px 10px 6px; }
 .install-sheet .btn.block { margin-top: 16px; }
@@ -720,6 +724,12 @@ const chapterCache = new Map();
 // chapter comes from the Free Use Bible API, so the first visit is quick; after that, text is read from the saved
 // copy and the whole Bible works offline.
 const BIBLE_CACHE = 'bst-bible-v1';   // also kept by sw.js; bump both when the text files are rebuilt
+// Passages cached from older files are dropped once BIBLE_CACHE changes, so corrected text shows up.
+const TEXT_V_KEY = 'bst:textv';
+if (readJson(TEXT_V_KEY) !== BIBLE_CACHE) {
+  if (readJson(TEXT_V_KEY)) { textCache = {}; storeTextCache(); }
+  try { localStorage.setItem(TEXT_V_KEY, JSON.stringify(BIBLE_CACHE)); } catch (e) {}
+}
 const TESTAMENTS = ['nt', 'ot'];
 const savedParts = new Map();         // "<translation>-<ot|nt>" -> Promise of { BOOK: [chapter 1 verses, …] }
 const savingBibles = new Set();
@@ -846,7 +856,8 @@ function save() {
   try { localStorage.setItem(KEY, data); return; } catch (e) {}
   // Storage is full: free the cached passages (they can be fetched again) and retry.
   try { localStorage.removeItem(TEXT_KEY); localStorage.setItem(KEY, data); }
-  catch (e) { toast('Couldn’t save: this browser’s storage is full. Export a backup in Settings.'); }
+  // (deferred: the first save() runs before toast() and its helpers are defined)
+  catch (e) { setTimeout(() => toast('Couldn’t save: this browser’s storage is full. Export a backup in Settings.')); }
 }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function getList(id) { return id === 'shared' ? shared : db.lists.find(l => l.id === id); }
@@ -962,34 +973,41 @@ const FAN = [
 ];
 
 // ---------- Add to Home Screen ----------
-// Installed, the app opens like an app, and iPhone/iPad no longer clear its data after 7 days without a visit.
-// Chrome's own install banner is suppressed; the strip on the home screen (and Settings) offers it instead.
-let installEvent = null;
+// Installed, the app opens like an app, and Safari no longer clears its data after 7 days of not opening it.
+// On iPhone/iPad the Home Screen app has its own storage, separate from Safari's, so studies move across with
+// a backup. Chrome's own install banner is suppressed; the strip on the home screen (and Settings) offers it instead.
+let installEvent = null, installedNow = false;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; if (['home', 'settings'].includes(current.view)) route(); });
-window.addEventListener('appinstalled', () => { installEvent = null; route(); });
+window.addEventListener('appinstalled', () => { installEvent = null; installedNow = true; route(); });
+
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 function installMode() {
   const ua = navigator.userAgent;
+  if (installedNow || matchMedia('(display-mode: standalone)').matches || navigator.standalone) return 'installed';
   // ?install=prompt|ios|inapp|menu shows that version of the strip, to preview it on a computer
   const preview = new URLSearchParams(location.search).get('install');
   if (preview) return preview;
-  if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) return 'installed';
   if (/FBAN|FBAV|FB_IAB|Instagram|Messenger|Line\/|MicroMessenger/i.test(ua)) return 'inapp';
   if (installEvent) return 'prompt';
-  if (/iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (isIOS()) return 'ios';
   if (/Android/.test(ua)) return 'menu';
   return null;   // a computer whose browser can't install it: nothing to suggest
 }
 
+// On iPhone/iPad (and in in-app browsers) the installed app starts empty, so existing studies go across in a backup.
 function installHelp(mode) {
+  const backup = (mode === 'ios' || mode === 'inapp') && db.lists.length
+    ? `<li><span>Save a backup of your studies</span><button class="btn sm" data-act="installBackup">${icon('download')} Save backup</button></li>` : '';
   if (mode === 'prompt') return `<button class="btn primary sm" data-act="install">${icon('addhome')} Install app</button>`;
-  if (mode === 'ios') return `<ol class="steps">
+  if (mode === 'ios') return `<ol class="steps">${backup}
       <li><span>Tap</span><span class="key">${icon('share')}</span><span><b>Share</b> in the browser bar</span></li>
       <li><span>Choose</span><span class="key">${icon('addhome')}</span><b>Add to Home Screen</b></li>
+      ${backup ? '<li><span>Open the app from your Home Screen and tap <b>Import</b></span></li>' : ''}
     </ol>`;
-  if (mode === 'inapp') return `<ol class="steps">
+  if (mode === 'inapp') return `<ol class="steps">${backup}
       <li><span>Tap</span><span class="key">${icon('more')}</span><span>at the top, then <b>Open in browser</b></span></li>
-      <li><span>Add it to your Home Screen from there</span></li>
+      <li><span>Add it to your Home Screen from there${backup ? ', then import your backup' : ''}</span></li>
     </ol>`;
   if (mode === 'menu') return `<ol class="steps">
       <li><span>Open the browser menu</span><span class="key">${icon('more')}</span></li>
@@ -1000,13 +1018,19 @@ function installHelp(mode) {
 
 // Shown once there's a study worth keeping. On iPhone/iPad it warns that Safari may clear them;
 // elsewhere the data isn't at risk, so it just offers the app. ✕ hides it for 7 days.
+// In a freshly installed iPhone/iPad app with no studies, it offers to import the backup instead.
 const INSTALL_SNOOZE = 7 * 864e5;
 function installStrip(hasStudies) {
   const mode = installMode();
+  if (mode === 'installed') return !hasStudies && isIOS() ? `<section class="install" aria-label="Import your studies">
+    <p><b>Moved from Safari?</b> Bring your studies over with the backup you saved.</p>
+    <label class="btn primary sm" for="importFile">Import</label>
+    <input type="file" id="importFile" class="visually-hidden" accept="application/json,.json">
+  </section>` : '';
   const preview = new URLSearchParams(location.search).has('install');
-  if (!mode || mode === 'installed') return '';
+  if (!mode) return '';
   if (!preview && (!hasStudies || Date.now() - (db.settings.installLater || 0) < INSTALL_SNOOZE)) return '';
-  const atRisk = mode === 'ios' || (mode === 'inapp' && (preview || /iPhone|iPad|iPod/.test(navigator.userAgent)));
+  const atRisk = mode === 'ios' || (mode === 'inapp' && (preview || isIOS()));
   const text = mode === 'inapp'
     ? '<b>Your studies are saved only on this phone.</b> Open this page in your browser to add it to your Home Screen.'
     : atRisk
@@ -1017,16 +1041,16 @@ function installStrip(hasStudies) {
     <button class="btn primary sm" data-act="${mode === 'prompt' ? 'install' : 'installHow'}">${mode === 'inapp' ? 'How' : 'Add'}</button>
     <button class="btn icon ghost" data-act="installLater" aria-label="Not now" title="Not now">${icon('x')}</button>
   </section>
-  <div class="sheet install-sheet" id="installSheet" hidden>
+  <dialog class="sheet install-sheet" id="installSheet" aria-labelledby="installTitle">
     <div class="sheet-backdrop" data-act="installClose"></div>
-    <div class="sheet-panel" role="dialog" aria-label="Add to Home Screen">
+    <div class="sheet-panel">
       <div class="grabber"></div>
-      <h3>Add to Home Screen</h3>
-      ${atRisk ? '<p>Safari can clear saved data from websites you haven’t opened in a while. Apps on your Home Screen are kept.</p>' : ''}
+      <h3 id="installTitle">Add to Home Screen</h3>
+      ${atRisk ? '<p>Safari can clear saved data from websites you haven’t opened in a while. Apps on your Home Screen are kept, but they start empty, so bring your studies with a backup.</p>' : ''}
       ${installHelp(mode)}
       <button class="btn block" data-act="installClose">Done</button>
     </div>
-  </div>`;
+  </dialog>`;
 }
 
 function viewHome() {
@@ -1079,8 +1103,8 @@ function viewLegal() {
     <h2>Privacy</h2>
     <h3>What is stored, and where</h3>
     <p>Your studies, notes, readers’ names and settings are saved in your browser’s local storage, on this device only. Passages you’ve opened are kept there too, and the app saves the full text of the Bible translation you use (about 4 MB, downloaded once in the background) so the whole Bible works offline. There is no copy of your studies anywhere else.</p>
-    <h3>iPhone and iPad: the 7-day rule</h3>
-    <p>Safari (and every other browser on iPhone and iPad) may delete a website’s stored data, including your studies, if you haven’t opened it for 7 days. Adding the app to your Home Screen prevents this: <a href="#/settings/install">see how</a>. Exporting a backup now and then keeps you safe either way.</p>
+    <h3>Safari and the 7-day rule</h3>
+    <p>Safari (on iPhone, iPad and Mac) may delete a website’s stored data, including your studies, if you haven’t opened the site on any of your last 7 days of using Safari. Apps added to the Home Screen don’t have this limit. On iPhone and iPad the Home Screen app keeps its own storage, separate from Safari, so move your studies across with Export backup and Import backup: <a href="#/settings/install">see how</a>. Backups are still the only protection against losing or changing your phone.</p>
     <h3>What leaves your device</h3>
     <ul>
       <li><b>Bible text:</b> until the whole translation is saved on your device (in the background, on your first visit), the app asks the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a> for the chapters in the studies you open (for example “BSB, Philippians 4”), so it can see which chapters a study uses. After that, text comes from the copy on your device. Your notes, titles and names are never sent.</li>
@@ -1098,7 +1122,7 @@ function viewLegal() {
     <ul>
       <li><b>Free to use</b> for personal and group Bible study.</li>
       <li><b>Provided as is.</b> The app may change or be unavailable at times, and comes with no warranty.</li>
-      <li><b>Keep your own backups.</b> Your studies live only on your device, so they can be lost if browser data is cleared, a device is lost, or, on iPhone and iPad, the app isn’t opened for 7 days unless it’s on your Home Screen. Use <a href="#/settings/privacy">Export backup</a> now and then. We can’t recover lost studies.</li>
+      <li><b>Keep your own backups.</b> Your studies live only on your device, so they can be lost if browser data is cleared, a device is lost, or, in Safari, the site isn’t opened on any of your last 7 days of using Safari (apps on the Home Screen are exempt). Use <a href="#/settings/privacy">Export backup</a> now and then. We can’t recover lost studies.</li>
       <li><b>Your content is yours,</b> and you’re responsible for what you put in studies you share.</li>
     </ul>
 
@@ -1147,7 +1171,7 @@ function viewSettings() {
       return `<div class="section" id="install"><h2>Home Screen</h2></div>
       <div class="install-panel">${mode === 'installed'
         ? `<p>✓ Installed. You’re using the app from your Home Screen.</p>`
-        : `<p>Add the app to your Home Screen so it opens like an app and works offline. On iPhone and iPad this also stops Safari from clearing your studies after 7 days without a visit.</p>${installHelp(mode)}`}</div>`;
+        : `<p>Add the app to your Home Screen so it opens like an app and works offline. On iPhone and iPad this also stops Safari from clearing your studies when you haven’t opened it for a while.</p>${installHelp(mode)}`}</div>`;
     })()}
 
     <div class="section"><h2>“Open in” button</h2></div>
@@ -1427,7 +1451,7 @@ function applyMd(ta, kind) {
 }
 
 // ---------- Backup (export / import a JSON file) ----------
-function exportBackup() {
+function exportBackup(rerender = true) {
   const data = { app: 'bible-sharing-tool', version: 1, exported: new Date().toISOString(), lists: db.lists };
   const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
   const a = document.createElement('a');
@@ -1436,6 +1460,7 @@ function exportBackup() {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   db.settings.lastBackup = Date.now(); save();
+  if (!rerender) return;
   route();
   toast('Backup saved');
 }
@@ -1570,7 +1595,9 @@ app.addEventListener('click', async e => {
   else if (act === 'goto') go(idx);
   else if (act === 'export') exportBackup();
   else if (act === 'install' && installEvent) { installEvent.prompt(); installEvent.userChoice.finally(() => { installEvent = null; route(); }); }
-  else if (act === 'installHow' || act === 'installClose') document.getElementById('installSheet').hidden = act === 'installClose';
+  else if (act === 'installHow') document.getElementById('installSheet').showModal();
+  else if (act === 'installClose') document.getElementById('installSheet').close();
+  else if (act === 'installBackup') { exportBackup(false); el.innerHTML = '✓ Saved'; }
   else if (act === 'installLater') { db.settings.installLater = Date.now(); save(); route(); }
   else if (act === 'jump') toggleSheet(true);
   else if (act === 'closeJump') toggleSheet(false);

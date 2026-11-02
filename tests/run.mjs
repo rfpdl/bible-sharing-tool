@@ -62,16 +62,24 @@ async function makeStudy(page, base, title, refs, readers = []) {
 
 // Watch a page: requests by host, console errors, CSP violations.
 function watch(page) {
-  const w = { hosts: new Set(), errors: [], bible: [] };
+  const w = { hosts: new Set(), errors: [], bible: [], requests: 0 };
   page.on('pageerror', e => w.errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') w.errors.push(m.text()); });
   page.on('request', r => {
     const u = new URL(r.url());
     w.hosts.add(u.host);
+    w.requests++;
     if (u.pathname.startsWith('/bible/')) w.bible.push({ path: u.pathname, at: Date.now() });
   });
   return w;
 }
+
+// Wait until the service worker has cached the app and controls the page, so going offline is a fair test.
+const swReady = page => page.evaluate(async () => {
+  await navigator.serviceWorker.ready;
+  if (!navigator.serviceWorker.controller) await new Promise(r => navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }));
+  return true;
+});
 
 async function throttle(page, ctx) {
   const cdp = await ctx.newCDPSession(page);
@@ -157,9 +165,9 @@ try {
       chapterCache.clear(); savedParts.clear();
       return api === await read();
     }));
-    const before = w.bible.length, hostsBefore = new Set(w.hosts);
+    const before = w.requests;
     await p.evaluate(() => { chapterCache.clear(); return Promise.all([getChapter('bsb', 'RUT', 1), getChapter('bsb', 'REV', 21)]); });
-    check('after saving, chapters load with no network', w.bible.length === before && w.hosts.size === hostsBefore.size);
+    check('after saving, chapters load with no network', w.requests === before, `${w.requests - before} requests`);
 
     // words of Jesus, no pilcrows
     await p.evaluate(() => { db.settings.inline = 'kjv'; save(); });
@@ -174,12 +182,16 @@ try {
     check('settings says the Bible is saved for offline', await until(p, () => document.getElementById('offlineStatus')?.textContent.startsWith('✓')));
 
     // offline: app opens, brand-new study across both testaments
+    await swReady(p);
     await ctx.setOffline(true);
-    await p.goto(BASE);
+    await p.goto(BASE); await p.reload();   // a real page load, answered by the service worker
     check('app opens offline', await until(p, () => !!document.querySelector('[data-act=new]')));
     const oid = await makeStudy(p, BASE, 'Offline', 'Ruth 1:16-17; Isa 40:31; Rev 21:4');
     let allText = true;
-    for (const i of [0, 1, 2]) { await p.goto(`${BASE}#/present/${oid}/${i}`); await hasText(p); if ((await scripture(p)).includes('offline')) allText = false; }
+    for (const i of [0, 1, 2]) {
+      await p.goto(`${BASE}#/present/${oid}/${i}`);
+      if (!(await hasText(p)) || !(await p.$('#scripture sup')) || (await scripture(p)).includes('offline')) allText = false;
+    }
     check('offline: a brand-new study shows every passage', allText);
     await ctx.setOffline(false);
 
@@ -245,10 +257,19 @@ try {
     check('...with no errors', qw.errors.length === 0, qw.errors.slice(0, 2).join(' | '));
     await nc.close();
 
+    // storage that refuses every write (blocked, or full for good): the app still starts
+    const ro = await browser.newContext({ ...PHONE });
+    await ro.addInitScript(() => { Storage.prototype.setItem = () => { throw new DOMException('blocked', 'QuotaExceededError'); }; });
+    const rp = await ro.newPage(), rw = watch(rp);
+    await rp.goto(BASE);
+    check('storage blocked: the app still opens', await until(rp, () => !!document.querySelector('[data-act=new]')));
+    check('...and says it couldn’t save, with no errors', await until(rp, () => /Couldn’t save/.test(document.getElementById('toast').textContent)) && rw.errors.length === 0, rw.errors.join(' | '));
+    await ro.close();
+
     // started offline: saving resumes as soon as the connection is back
     const late = await browser.newContext({ ...PHONE });
     const lp = await late.newPage();
-    await lp.goto(BASE); await lp.waitForTimeout(500);
+    await lp.goto(BASE); await swReady(lp);
     await late.setOffline(true);
     await lp.evaluate(() => caches.delete('bst-bible-v1'));
     await lp.reload(); await lp.waitForTimeout(3500);
@@ -443,7 +464,8 @@ try {
 
   // Add to Home Screen strip, as Safari on an iPhone (detected from the browser, no ?install= preview)
   {
-    const ip = await browser.newContext({ ...PHONE, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1' });
+    const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+    const ip = await browser.newContext({ ...PHONE, userAgent: IPHONE, acceptDownloads: true });
     const p = await ip.newPage();
     const w = watch(p);
     await p.goto(BASE);
@@ -452,16 +474,47 @@ try {
     await p.goto(`${BASE}#/`);
     check('iPhone: strip warns once there’s a study', await until(p, () => /saved only on this phone/.test(document.querySelector('.install')?.innerText || '')));
     await p.click('.install [data-act=installHow]');
-    check('iPhone: Add shows the Share → Add to Home Screen steps', await until(p, () => {
+    check('iPhone: Add shows backup, Share → Add to Home Screen, then Import', await until(p, () => {
       const s = document.getElementById('installSheet');
-      return !s.hidden && /Share/.test(s.innerText) && /Add to Home Screen/.test(s.innerText);
+      return s.open && /Save a backup/.test(s.innerText) && /Share/.test(s.innerText) && /Add to Home Screen/.test(s.innerText) && /Import/.test(s.innerText);
     }));
-    await p.click('#installSheet .btn.block');
+    check('iPhone: the sheet is modal and has the focus', await p.evaluate(() => document.getElementById('installSheet').contains(document.activeElement)));
+    const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#installSheet [data-act=installBackup]')]);
+    check('iPhone: Save backup downloads it and the sheet stays open', !!dl && await p.evaluate(() => document.getElementById('installSheet').open));
+    await p.keyboard.press('Escape');
+    check('iPhone: Escape closes the sheet', await until(p, () => !document.getElementById('installSheet').open));
     await p.click('.install [data-act=installLater]');
     await p.reload();
     check('iPhone: ✕ hides it, also after reload', await until(p, () => !!document.querySelector('.hero')) && !(await p.$('.install')));
+    await p.evaluate(() => { db.settings.installLater = Date.now() - 8 * 864e5; save(); }); await p.reload();
+    check('iPhone: it comes back after 7 days', await until(p, () => !!document.querySelector('.install')));
     check('iPhone strip: no errors', w.errors.length === 0, w.errors.join(' | '));
     await ip.close();
+
+    // the installed app on iPhone starts empty: it offers to import the backup
+    const home = await browser.newContext({ ...PHONE, userAgent: IPHONE });
+    await home.addInitScript(() => Object.defineProperty(navigator, 'standalone', { value: true }));
+    const h = await home.newPage();
+    await h.goto(BASE);
+    check('installed iPhone app, no studies: offers Import', await until(h, () => /Moved from Safari/.test(document.querySelector('.install')?.innerText || '')) && !!(await h.$('#importFile')));
+    await home.close();
+
+    // iPadOS Safari says it's a Mac; the touch screen gives it away
+    const ipad = await browser.newContext({ viewport: { width: 820, height: 1180 }, userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15' });
+    await ipad.addInitScript(() => { Object.defineProperty(navigator, 'platform', { value: 'MacIntel' }); Object.defineProperty(navigator, 'maxTouchPoints', { value: 5 }); });
+    const ia = await ipad.newPage();
+    await makeStudy(ia, BASE, 'iPad', 'John 1:1'); await ia.goto(`${BASE}#/`);
+    check('iPad (desktop-style Safari): gets the iPhone/iPad steps', await until(ia, () => /saved only on this phone/.test(document.querySelector('.install')?.innerText || '')));
+    await ipad.close();
+
+    // Android: after installing from the tab, the strip doesn't come back with manual steps
+    const and = await browser.newContext({ ...PHONE, userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' });
+    const a = await and.newPage();
+    await makeStudy(a, BASE, 'Android', 'John 1:1'); await a.goto(`${BASE}#/`);
+    const shown = await until(a, () => /Opens like an app/.test(document.querySelector('.install')?.innerText || ''));
+    await a.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
+    check('Android: strip offered, then gone once installed', shown && await until(a, () => !document.querySelector('.install')));
+    await and.close();
   }
 } finally {
   await browser.close();

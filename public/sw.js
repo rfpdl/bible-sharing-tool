@@ -1,5 +1,5 @@
 // Caches the app shell so Bible Sharing Tool opens offline. Bump VERSION when shipping changes.
-const VERSION = 'bst-v18';
+const VERSION = 'bst-v19';
 // The page saves the whole Bible translation here (BIBLE_CACHE in index.html); app updates must not delete it.
 const BIBLE = 'bst-bible-v1';
 // The page is cached under './' only: Cloudflare redirects /index.html to /, and a cached
