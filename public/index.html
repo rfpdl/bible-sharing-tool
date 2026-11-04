@@ -1087,7 +1087,7 @@ function viewHome() {
   </div>`;
 }
 
-const LEGAL_UPDATED = '2 November 2026';
+const LEGAL_UPDATED = '4 November 2026';
 const SOURCE_URL = 'https://github.com/rfpdl/bible-sharing-tool';
 
 function viewLegal() {
@@ -1109,10 +1109,11 @@ function viewLegal() {
     <ul>
       <li><b>Bible text:</b> until the whole translation is saved on your device (in the background, on your first visit), the app asks the <a href="https://bible.helloao.org" target="_blank" rel="noopener">Free Use Bible API</a> for the chapters in the studies you open (for example “BSB, Philippians 4”), so it can see which chapters a study uses. After that, text comes from the copy on your device. Your notes, titles and names are never sent.</li>
       <li><b>“Open in” button:</b> opens the passage on Bible.com, only when you tap it. Bible.com’s own privacy policy applies there.</li>
+      <li><b>Visit counts:</b> the app uses <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">Cloudflare Web Analytics</a> to count visits and see how fast pages load. It records the site’s address without anything after a “?” or “#” (so never a study or share link), plus the browser, device type, country and loading times. It sets no cookies, doesn’t store anything on your device and doesn’t follow you across websites.</li>
       <li><b>Normal web traffic:</b> like any website, the servers that deliver the app (Cloudflare) and the Bible API receive your IP address and basic request details so they can respond. They don’t see your studies.</li>
     </ul>
     <h3>What we don’t do</h3>
-    <p>No accounts, no cookies, no ads, no analytics, no tracking. The app’s code is public, so anyone can check this: <a href="${SOURCE_URL}" target="_blank" rel="noopener">github.com/rfpdl/bible-sharing-tool</a>.</p>
+    <p>No accounts, no cookies, no ads, no tracking, and no analytics beyond the anonymous visit counts above. The app’s code is public, so anyone can check this: <a href="${SOURCE_URL}" target="_blank" rel="noopener">github.com/rfpdl/bible-sharing-tool</a>.</p>
     <h3>Share links</h3>
     <p>A share link carries the study inside the link itself (after the “#”, which browsers don’t send to servers). Nothing is uploaded, but anyone who has the link can read the study, including its notes, so think before sharing private notes.</p>
     <h3>Deleting your data</h3>
@@ -1189,7 +1190,7 @@ function viewSettings() {
       <div class="fact">${icon('lock')}<div><b>Everything stays on this device.</b> No account, no server, no database. Your studies, notes and readers’ names are never sent anywhere, so nobody (including us) can see them.</div></div>
       <div class="fact">${icon('book')}<div><b>Verse text comes from the Free Use Bible API until your Bible is saved on this device.</b> Only the translation and chapters (like “BSB, Philippians 4”) are sent, never your notes. “Open in” takes you to Bible.com only when you tap it.</div></div>
       <div class="fact">${icon('share')}<div><b>Share links carry the study inside the link.</b> Nothing is uploaded, but anyone you send the link to can read it, so keep private notes out of studies you share.</div></div>
-      <div class="fact">${icon('eyeoff')}<div><b>No ads, no analytics, no tracking.</b></div></div>
+      <div class="fact">${icon('eyeoff')}<div><b>No ads, no tracking.</b> Only anonymous visit counts (Cloudflare Web Analytics), which never include your studies.</div></div>
       <div class="fact">${icon('github')}<div><b>Don’t just take our word for it.</b> The code is public: <a href="${SOURCE_URL}" target="_blank" rel="noopener">see it on GitHub</a>.</div></div>
       <a class="btn sm ghost" href="#/legal" style="justify-self:start">Read the full Privacy &amp; Terms ${icon('arrow')}</a>
     </div>

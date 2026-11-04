@@ -13,7 +13,7 @@ Everything runs in your browser. There is no account, no server and no database,
 - **Verse text** comes from the [Free Use Bible API](https://bible.helloao.org) until the whole translation is saved on the device (in the background, on the first visit). Only the translation and chapters of the studies you open (e.g. "BSB, Philippians 4") are sent, never your notes.
 - **"Open in"** goes to Bible.com, and only when you tap it.
 - **Share links** carry the study inside the link (after the `#`, which browsers never send to a server). Nothing is uploaded, but anyone you send the link to can read it.
-- **No ads, no analytics, no tracking.** Fonts are self-hosted; the [Content Security Policy](public/_headers) only allows the app's own files and the Bible API.
+- **No ads, no tracking.** Visits are counted with [Cloudflare Web Analytics](https://www.cloudflare.com/web-analytics/) (no cookies; it records the page address without anything after `?` or `#`, so never a study). Fonts are self-hosted; the [Content Security Policy](public/_headers) only allows the app's own files, the Bible API and Cloudflare's analytics script.
 
 **You keep your own data.** Clearing browser data, uninstalling, or switching phones removes your studies. Use **Settings → Export backup** now and then, and **Import backup** to restore or move to another device.
 

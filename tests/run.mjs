@@ -293,7 +293,9 @@ try {
       (await scripture(c)).includes('offline') && await c.isVisible('.dock .open'));
     await cold.close();
 
-    check('only this site and the Bible API are contacted', [...w.hosts, ...fw.hosts].every(h => h === OWN_HOST || h === API_HOST), [...new Set([...w.hosts, ...fw.hosts])].join(', '));
+    // Cloudflare adds its Web Analytics script on the live site (disclosed on the Privacy page)
+    const allowed = h => h === OWN_HOST || h === API_HOST || h === 'static.cloudflareinsights.com' || h === 'cloudflareinsights.com';
+    check('only this site, the Bible API and Cloudflare analytics are contacted', [...w.hosts, ...fw.hosts].every(allowed), [...new Set([...w.hosts, ...fw.hosts])].join(', '));
     check('no errors or CSP violations', w.errors.length === 0, w.errors.slice(0, 3).join(' | '));
     await ctx.close();
   }
