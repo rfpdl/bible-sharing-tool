@@ -64,7 +64,8 @@ async function makeStudy(page, base, title, refs, readers = []) {
 function watch(page) {
   const w = { hosts: new Set(), errors: [], bible: [], requests: 0 };
   page.on('pageerror', e => w.errors.push(e.message));
-  page.on('console', m => { if (m.type() === 'error') w.errors.push(m.text()); });
+  // (Cloudflare's analytics report failing to send while offline is expected, not an app error)
+  page.on('console', m => { if (m.type() === 'error' && !m.location().url.includes('/cdn-cgi/rum')) w.errors.push(m.text()); });
   page.on('request', r => {
     const u = new URL(r.url());
     w.hosts.add(u.host);
