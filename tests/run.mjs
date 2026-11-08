@@ -140,6 +140,16 @@ try {
     await p.fill('[data-field=note][data-idx="1"]', 'We grow **together**');
     await p.waitForTimeout(300);
     const id = await p.evaluate(() => db.lists[0].id);
+    check('notes are 4 lines and not resizable', await p.evaluate(() => { const n = document.querySelector('[data-field=note]'); return n.rows === 4 && getComputedStyle(n).resize === 'none'; }));
+
+    // home with a study: the list, with New study beside its heading
+    await p.goto(BASE); await p.waitForSelector('.study');
+    check('home lists studies under "Your studies", with New study beside it', await p.evaluate(() =>
+      /Your studies\s*1/.test(document.querySelector('.list-head')?.innerText) && !!document.querySelector('.list-head [data-act=new]') &&
+      document.querySelectorAll('[data-act=new]').length === 1 && !document.querySelector('.hero')));
+    check('study card shows its passage count', (await p.textContent('.study .meta')).includes('4 passages'));
+    check('footer links Privacy & Terms and the source code', await p.evaluate(() =>
+      !!document.querySelector('.foot a[href="#/legal"]') && /github\.com/.test(document.querySelector('.foot a.src')?.href)));
 
     // reading: buttons, keyboard, Finish
     await p.goto(`${BASE}#/present/${id}/0`); await hasText(p);
@@ -409,14 +419,14 @@ try {
       await v.close();
     }
 
-    // tap targets on the screens used during a study
+    // tap targets on the screens used during a study (43.5: a 44 px button can measure 43.99)
     const small = [];
     const targets = { [`#/present/${id}/0`]: ['.dock .prev', '.dock .open', '.dock .next', '.stage-top a:not(.seg)', '.stage-top button'], [`#/list/${id}`]: ['[data-act=add]', '[data-act=share]', 'a.btn.primary'], '': ['[data-act=new]'] };
     for (const [hash, sels] of Object.entries(targets)) {
       await p.goto(BASE + hash); await p.waitForTimeout(400);
       for (const sel of sels) for (const el of await p.$$(sel)) {
         const box = await el.boundingBox();
-        if (box && (box.height < 44 || box.width < 44)) small.push(`${sel} ${box.width.toFixed(0)}×${box.height.toFixed(0)}`);
+        if (box && (box.height < 43.5 || box.width < 43.5)) small.push(`${sel} ${box.width.toFixed(0)}×${box.height.toFixed(0)}`);
       }
     }
     check('study controls are at least 44×44 px', small.length === 0, small.join('; '));
@@ -491,7 +501,7 @@ try {
     check('iPhone: Escape closes the sheet', await until(p, () => !document.getElementById('installSheet').open));
     await p.click('.install [data-act=installLater]');
     await p.reload();
-    check('iPhone: ✕ hides it, also after reload', await until(p, () => !!document.querySelector('.hero')) && !(await p.$('.install')));
+    check('iPhone: ✕ hides it, also after reload', await until(p, () => !!document.querySelector('.study')) && !(await p.$('.install')));
     await p.evaluate(() => { db.settings.installLater = Date.now() - 8 * 864e5; save(); }); await p.reload();
     check('iPhone: it comes back after 7 days', await until(p, () => !!document.querySelector('.install')));
     check('iPhone strip: no errors', w.errors.length === 0, w.errors.join(' | '));

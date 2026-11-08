@@ -131,12 +131,17 @@ a { color: var(--accent-ink); }
   opacity: 0; transition: opacity .25s ease; pointer-events: none;
 }
 html.scrolled .bar::before, html.scrolled .stage-top::before { opacity: 1; }
-.bar .grow { flex: 1; }
+.bar .grow, .list-head .grow { flex: 1; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: -.02em; }
 .brand img { width: 28px; height: 26px; filter: drop-shadow(0 0 10px rgba(242,179,90,.25)); }
 
 /* ---------- home ---------- */
 .hero { padding: 36px 0 8px; animation: rise .6s var(--ease) both; }
+.list-head { display: flex; align-items: center; gap: 10px; margin: 28px 2px 14px; animation: rise .5s var(--ease) both; }
+.list-head h1 { font: 500 30px/1.1 var(--serif); letter-spacing: -.025em; margin: 0; }
+.list-head span { font-size: 15px; color: var(--muted); }
+/* While the list is short, the welcome cards fill the space below it, faded */
+.fan.faint { margin-top: 36px; opacity: .35; pointer-events: none; }
 .hero h1 {
   font: 500 clamp(40px, 10.5vw, 64px)/1.02 var(--serif); letter-spacing: -.035em; margin: 0 0 16px;
   font-optical-sizing: auto;
@@ -233,10 +238,15 @@ dialog.install-sheet::backdrop { background: transparent; }
 .fact { display: flex; gap: 12px; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
 .fact .ic { color: var(--accent); width: 18px; height: 18px; margin-top: 2px; }
 .fact b { color: var(--text); font-weight: 600; }
+.facts .links { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; }
+.facts .links a { display: inline-flex; align-items: center; gap: 6px; color: var(--text); text-decoration: none; font-weight: 500; }
+.facts .links .ic { width: 15px; height: 15px; }
 .foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; margin-top: 48px; font-size: 13px; color: var(--muted); }
 .foot a { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
 .foot .ic { width: 14px; height: 14px; }
-.foot .src { flex-basis: 100%; justify-content: center; }
+.foot { align-items: center; }
+.foot .src { padding: 6px; margin: -6px 0; }
+.foot .src .ic { width: 16px; height: 16px; }
 .foot a:hover { color: var(--text); text-decoration: underline; }
 .legal h2 { font: 500 30px/1.15 var(--serif); letter-spacing: -.02em; margin: 40px 0 6px; }
 .legal h3 { font: 650 15px var(--sans); margin: 22px 0 4px; }
@@ -254,7 +264,7 @@ input, textarea, select {
   border-radius: 14px; padding: 12px 14px; width: 100%; transition: border-color .2s, background .2s, box-shadow .2s;
 }
 input:focus, textarea:focus, select:focus { outline: none; border-color: var(--stroke-2); background: var(--card-hi); box-shadow: 0 0 0 4px var(--accent-soft); }
-textarea { resize: vertical; min-height: 48px; line-height: 1.55; }
+textarea { resize: none; min-height: 48px; line-height: 1.55; }
 ::placeholder { color: var(--muted); opacity: .85; }
 select {
   -webkit-appearance: none; appearance: none; padding-right: 38px; cursor: pointer;
@@ -321,7 +331,8 @@ kbd {
 }
 .p-head .ref:focus { background: transparent; box-shadow: none; text-decoration: underline 2px var(--accent); text-underline-offset: 6px; }
 .p-head .ref.bad { color: var(--danger); }
-.p-actions { display: flex; gap: 2px; opacity: .55; transition: opacity .2s; }
+.side { grid-row: span 2; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.p-actions { display: flex; flex-direction: column; gap: 2px; opacity: .55; transition: opacity .2s; }
 .passage:hover .p-actions, .passage:focus-within .p-actions { opacity: 1; }
 @media (hover: none) { .p-actions { opacity: 1; } }
 .p-body { grid-column: 2; display: grid; gap: 8px; }
@@ -332,7 +343,8 @@ kbd {
 .md { border-radius: 14px; background: var(--field); border: 1px solid transparent; transition: border-color .2s, background .2s, box-shadow .2s; }
 .md:focus-within { border-color: var(--stroke-2); background: var(--card-hi); box-shadow: 0 0 0 4px var(--accent-soft); }
 .md textarea, .md textarea:focus { background: transparent; border: 0; box-shadow: none; padding-top: 4px; font-size: 15px; }
-.md-bar { display: flex; align-items: center; gap: 2px; padding: 6px 8px 0; }
+.md-bar { display: none; align-items: center; gap: 2px; padding: 6px 8px 0; }
+.md:focus-within .md-bar { display: flex; }
 .md-bar button {
   width: 30px; height: 28px; border: 0; background: transparent; color: var(--muted); border-radius: 8px;
   font: 16px var(--serif); cursor: pointer; transition: background .15s, color .15s;
@@ -442,6 +454,7 @@ select.pill:focus { box-shadow: 0 0 0 4px var(--accent-soft); }
   -webkit-backdrop-filter: blur(28px) saturate(1.4); backdrop-filter: blur(28px) saturate(1.4);
   animation: sheetUp .35s var(--ease) both;
 }
+.sheet-select { margin: 0 10px 6px; width: calc(100% - 20px); }
 .grabber { width: 40px; height: 5px; border-radius: 5px; background: var(--stroke-2); margin: 0 auto 10px; }
 .sheet h3 { font: 600 13px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 6px 10px 8px; }
 .jump {
@@ -652,10 +665,10 @@ function label(r, full) {
 // Public-domain text shown inline: from the Free Use Bible API (bible.helloao.org) until the whole translation
 // is saved on the device (see BIBLE_CACHE). `api` is that API's translation id.
 const INLINE = [
-  { id: 'bsb', api: 'BSB', name: 'BSB', desc: 'Berean Standard Bible — modern and accurate, reads much like the NIV' },
-  { id: 'web', api: 'ENGWEBP', name: 'WEB', desc: 'World English Bible — modern English, easy to read aloud' },
-  { id: 'kjv', api: 'eng_kjv', name: 'KJV', desc: 'King James Version — classic, traditional wording' },
-  { id: 'off', name: 'Hide text', desc: 'Show only the reference and use “Open in” for the text' },
+  { id: 'bsb', api: 'BSB', name: 'BSB', desc: 'Berean Standard Bible' },
+  { id: 'web', api: 'ENGWEBP', name: 'WEB', desc: 'World English Bible' },
+  { id: 'kjv', api: 'eng_kjv', name: 'KJV', desc: 'King James Version' },
+  { id: 'off', name: 'Hide text', desc: '' },
 ];
 const TEXT_API = 'https://bible.helloao.org/api';
 // YouVersion (bible.com) version IDs, used only for "Open in" links.
@@ -961,7 +974,7 @@ function mdEditor(field, value, placeholder, idx) {
       <button type="button" data-md="u" title="Underline (⌘U)" aria-label="Underline"><u>U</u></button>
       <span class="md-hint">**bold** &nbsp;*italic* &nbsp;__underline__</span>
     </div>
-    <textarea data-field="${field}"${at} rows="2" placeholder="${placeholder}">${esc(value)}</textarea>
+    <textarea data-field="${field}"${at} rows="4" placeholder="${placeholder}">${esc(value)}</textarea>
   </div>`;
 }
 
@@ -1053,6 +1066,10 @@ function installStrip(hasStudies) {
   </dialog>`;
 }
 
+const fan = (cls = '') => `<div class="fan ${cls}" aria-hidden="true">${FAN.map(f => `
+  <div class="fan-card" style="--x:${f.x};--r:${f.r};--d:${f.d}"><span class="n">${pad(f.n)}</span><b>${f.ref}</b><span>${f.text}</span></div>`).join('')}
+</div>`;
+
 function viewHome() {
   const lists = [...db.lists].sort((a, b) => b.updated - a.updated);
   app.innerHTML = `<div class="wrap">
@@ -1063,27 +1080,23 @@ function viewHome() {
     </header>
     ${installStrip(lists.length > 0)}
 
-    <section class="hero">
-      <h1>Read <em>together</em>,<br>passage by passage.</h1>
-      <p>Line up the verses for your study, add your notes, then step through them while everyone reads.</p>
-      ${lists.length ? '' : `<div class="fan" aria-hidden="true">${FAN.map(f => `
-        <div class="fan-card" style="--x:${f.x};--r:${f.r};--d:${f.d}"><span class="n">${pad(f.n)}</span><b>${f.ref}</b><span>${f.text}</span></div>`).join('')}
-      </div>`}
-      <button class="btn primary lg${lists.length ? '' : ' block'}" data-act="new">${icon('plus')} New study</button>
-      <a class="privacy-chip" href="#/settings/privacy">${icon('lock')} Private: your studies stay on this device</a>
-    </section>
-
     ${lists.length ? `
-      <div class="section"><h2>Your studies</h2><span>${lists.length}</span></div>
+      <div class="list-head"><h1>Your studies</h1><span>${lists.length}</span><span class="grow"></span><button class="btn sm primary" data-act="new">${icon('plus')} New study</button></div>
       <div class="grid">${lists.map((l, i) => `
         <a class="study" href="#/list/${l.id}" style="--i:${i}">
-          <div class="meta">${plural(l.items.length, 'passage')}<i></i>${ago(l.updated)}</div>
+          <div class="meta">${l.items.length ? `${l.items.length} passage${l.items.length > 1 ? 's' : ''}<i></i>` : ''}${ago(l.updated)}</div>
           <h3>${esc(l.title || 'Untitled study')}</h3>
           ${l.items.length ? `<div class="refs">${l.items.slice(0, 3).map(it => `<span class="tag">${esc(label(it.ref))}</span>`).join('')}${l.items.length > 3 ? `<span class="tag">+${l.items.length - 3}</span>` : ''}</div>` : ''}
-          <span class="go">${icon('arrow')}</span>
         </a>`).join('')}
-      </div>` : ''}
-    <footer class="foot"><a href="#/legal">Privacy &amp; Terms</a><span>·</span><a href="#/settings/privacy">Back up your studies</a><a class="src" href="${SOURCE_URL}" target="_blank" rel="noopener">${icon('github')} Source code</a></footer>
+      </div>
+      ${lists.length <= 2 ? fan('faint') : ''}` : `
+      <section class="hero">
+        <h1>Read <em>together</em>,<br>passage by passage.</h1>
+        ${fan()}
+        <button class="btn primary lg block" data-act="new">${icon('plus')} New study</button>
+        <a class="privacy-chip" href="#/settings/privacy">${icon('lock')} Private: your studies stay on this device</a>
+      </section>`}
+    <footer class="foot"><a href="#/legal">Privacy &amp; Terms</a><a class="src" href="${SOURCE_URL}" target="_blank" rel="noopener" aria-label="Source code on GitHub" title="Source code on GitHub">${icon('github')}</a></footer>
   </div>`;
 }
 
@@ -1145,9 +1158,9 @@ async function showOfflineStatus() {
   if (!el || t === 'off' || !window.caches) return;
   const name = INLINE.find(x => x.id === t).name;
   const saved = await savedStatus(t).catch(() => false);
-  el.textContent = saved ? `✓ The whole ${name} Bible is saved on this device, so it works offline.`
-    : savingBibles.has(t) ? `Saving the whole ${name} Bible on this device for offline use…`
-    : `The whole ${name} Bible will be saved on this device for offline use when you’re online.`;
+  el.textContent = saved ? `✓ ${name} saved for offline use`
+    : savingBibles.has(t) ? `Saving ${name} for offline use…`
+    : `${name} will be saved for offline use when you’re online`;
 }
 
 function viewSettings() {
@@ -1161,9 +1174,8 @@ function viewSettings() {
       <label class="opt">
         <input type="radio" name="inline" value="${t.id}" data-setting="inline"${s.inline === t.id ? ' checked' : ''}>
         <span class="radio"></span>
-        <div><b>${t.name}</b><span>${t.desc}</span></div>
+        <div><b>${t.name}</b>${t.desc ? `<span>${t.desc}</span>` : ''}</div>
       </label>`).join('')}
-    <p class="hint">These translations are public domain, so they can be shown here for free.</p>
     <p class="hint" id="offlineStatus"></p>
 
     ${(() => {
@@ -1175,35 +1187,31 @@ function viewSettings() {
         : `<p>Add the app to your Home Screen so it opens like an app and works offline. On iPhone and iPad this also stops Safari from clearing your studies when you haven’t opened it for a while.</p>${installHelp(mode)}`}</div>`;
     })()}
 
-    <div class="section"><h2>“Open in” button</h2></div>
+    <div class="section"><h2>Other translations (Bible.com)</h2></div>
     <div class="panel">
-      <select id="yv" data-setting="yv" aria-label="Open in translation">
+      <select id="yv" data-setting="yv" aria-label="Translation to open on Bible.com">
         ${YV.map(v => `<option value="${v.id}"${s.yv === v.id ? ' selected' : ''}>${v.abbr}</option>`).join('')}
         <option value="custom"${s.yv === 'custom' ? ' selected' : ''}>Other (YouVersion ID)…</option>
       </select>
       ${s.yv === 'custom' ? `<input data-setting="yvCustom" inputmode="numeric" placeholder="YouVersion version number, e.g. 2195" value="${esc(s.yvCustom)}" style="margin-top:8px">` : ''}
-      <p class="hint">Opens the passage on Bible.com. Use this for NIV, ESV, NASB and other licensed translations.</p>
     </div>
 
     <div class="section" id="privacy"><h2>Privacy &amp; your data</h2></div>
     <div class="panel facts">
-      <div class="fact">${icon('lock')}<div><b>Everything stays on this device.</b> No account, no server, no database. Your studies, notes and readers’ names are never sent anywhere, so nobody (including us) can see them.</div></div>
-      <div class="fact">${icon('book')}<div><b>Verse text comes from the Free Use Bible API until your Bible is saved on this device.</b> Only the translation and chapters (like “BSB, Philippians 4”) are sent, never your notes. “Open in” takes you to Bible.com only when you tap it.</div></div>
-      <div class="fact">${icon('share')}<div><b>Share links carry the study inside the link.</b> Nothing is uploaded, but anyone you send the link to can read it, so keep private notes out of studies you share.</div></div>
-      <div class="fact">${icon('eyeoff')}<div><b>No ads, no tracking.</b> Only anonymous visit counts (Cloudflare Web Analytics), which never include your studies.</div></div>
-      <div class="fact">${icon('github')}<div><b>Don’t just take our word for it.</b> The code is public: <a href="${SOURCE_URL}" target="_blank" rel="noopener">see it on GitHub</a>.</div></div>
-      <a class="btn sm ghost" href="#/legal" style="justify-self:start">Read the full Privacy &amp; Terms ${icon('arrow')}</a>
+      <div class="fact">${icon('lock')}<div><b>Your studies stay on this device.</b> Nobody else can see them, including us.</div></div>
+      <div class="fact">${icon('share')}<div><b>Anyone with a share link can read that study,</b> notes included.</div></div>
+      <div class="links"><a href="#/legal">Privacy &amp; Terms ${icon('arrow')}</a><a href="${SOURCE_URL}" target="_blank" rel="noopener">${icon('github')} Source code</a></div>
     </div>
 
     <div class="section"><h2>Back up your studies</h2><span>${plural(db.lists.length, 'study', 'studies')}</span></div>
     <div class="panel">
-      <p style="margin:0;font-size:14.5px;line-height:1.55;color:var(--text-2)">Since nothing is stored online, <b style="color:var(--text)">you keep your own data</b>. Clearing your browser data, uninstalling the app, or changing phones will remove your studies. Save a backup file now and then, and import it on any device.</p>
+      <p style="margin:0;font-size:14.5px;line-height:1.55;color:var(--text-2)">Your studies are only on this device. Save a backup now and then.</p>
       <div class="btn-row">
         <button class="btn" data-act="export"${db.lists.length ? '' : ' disabled'}>${icon('download')} Export backup</button>
         <label class="btn" for="importFile">${icon('upload')} Import backup</label>
         <input type="file" id="importFile" class="visually-hidden" accept="application/json,.json">
       </div>
-      <p class="hint">${s.lastBackup ? 'Last backup ' + ago(s.lastBackup) + '.' : 'No backup yet.'} Importing adds to your studies; it never deletes any.</p>
+      <p class="hint">Last backup: ${s.lastBackup ? ago(s.lastBackup) : 'never'}</p>
     </div>
   </div>`;
 }
@@ -1219,41 +1227,39 @@ function viewEdit(list) {
     </header>
 
     <input class="title-input" data-field="title" placeholder="Untitled study" value="${esc(list.title)}" aria-label="Study title">
-    <div class="subline">${plural(list.items.length, 'passage')} · edited ${ago(list.updated)}</div>
 
     <div class="composer">
       ${icon('search')}
       <div class="ac-wrap">
-        <textarea id="addRefs" rows="1" placeholder="Add a passage — try “phil”" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Add passages"></textarea>
+        <textarea id="addRefs" rows="1" placeholder="Phil 4:6-7; Prov 3:5" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Add passages"></textarea>
         <div class="ac" id="ac" hidden></div>
       </div>
       <button class="btn primary sm" data-act="add">Add</button>
     </div>
-    <div class="hint">Add several at once with <kbd>;</kbd> &nbsp;e.g. Phil 4:6-7; Exo 2:5; Prov 3:5-6</div>
     <div class="err" id="addErr"></div>
 
-    ${list.items.length ? `<div class="section"><h2>Passages</h2><span>${list.items.length}</span></div>` : ''}
     <div class="passages">${list.items.map((it, i) => `
       <div class="passage" style="--i:${i}">
-        <div class="num">${pad(i + 1)}</div>
-        <div class="p-head">
-          <input class="ref" data-field="ref" data-idx="${i}" value="${esc(label(it.ref, true))}" aria-label="Reference">
+        <div class="side">
+          <div class="num">${pad(i + 1)}</div>
           <div class="p-actions">
             <button class="btn xs ghost" data-act="up" data-idx="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">${icon('up')}</button>
             <button class="btn xs ghost" data-act="down" data-idx="${i}" ${i === list.items.length - 1 ? 'disabled' : ''} aria-label="Move down">${icon('down')}</button>
             <button class="btn xs ghost danger" data-act="remove" data-idx="${i}" aria-label="Remove">${icon('x')}</button>
           </div>
         </div>
+        <div class="p-head">
+          <input class="ref" data-field="ref" data-idx="${i}" value="${esc(label(it.ref, true))}" aria-label="Reference">
+        </div>
         <div class="p-body">
           <div class="with-icon">${icon('user')}<input data-field="reader" data-idx="${i}" placeholder="Who reads this?" value="${esc(it.reader)}"></div>
-          ${mdEditor('note', it.note, 'Your note or insight…', i)}
+          ${mdEditor('note', it.note, 'Note', i)}
         </div>
       </div>`).join('')}
     </div>
 
-    <div class="section"><h2>Study notes</h2></div>
-    ${mdEditor('notes', list.notes, 'Opening thought, discussion questions, prayer points…')}
-    <p class="hint">Shown after the last passage.</p>
+    <div class="section"><h2>Closing notes</h2></div>
+    ${mdEditor('notes', list.notes, 'Discussion questions, prayer points…')}
 
     <div style="margin-top:40px;text-align:center">
       <button class="btn sm ghost danger" data-act="delete">${icon('trash')} Delete study</button>
@@ -1270,8 +1276,7 @@ function viewShared() {
     </header>
     <div class="badge">${icon('share')} Shared with you</div>
     <h1 class="page-title" style="font-size:clamp(36px,9vw,52px)">${esc(list.title)}</h1>
-    <div class="subline">${plural(list.items.length, 'passage')} · came inside the link, nothing was uploaded</div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;margin-top:20px">
       <a class="btn primary lg" style="flex:1" href="#/present/shared/0">${icon('play')} Start</a>
       <button class="btn lg" style="flex:1" data-act="saveShared">${icon('save')} Save copy</button>
     </div>
@@ -1285,7 +1290,7 @@ function viewShared() {
         </div>` : ''}
       </div>`).join('')}
     </div>
-    ${list.notes ? `<div class="note"><span class="lbl">${icon('pen')}Study notes</span><div class="md-out">${md(list.notes)}</div></div>` : ''}
+    ${list.notes ? `<div class="note"><span class="lbl">${icon('pen')}Closing notes</span><div class="md-out">${md(list.notes)}</div></div>` : ''}
   </div>`;
 }
 
@@ -1314,21 +1319,16 @@ function viewPresent(list, idx) {
     </div></header>
 
     <article class="slide ${dir}" id="slide">
-      <div class="eyebrow">Passage ${pad(idx + 1)} · ${pad(n)}</div>
       <h1 class="ref-title">${esc(book)} <em>${esc(suffix(it.ref).replace(/-/g, '–'))}</em></h1>
       <div class="pills">
         <select class="pill" data-setting="inline" aria-label="Translation shown here" title="Translation shown here">
           ${INLINE.map(t => `<option value="${t.id}"${inline === t.id ? ' selected' : ''}>${t.name}</option>`).join('')}
         </select>
-        <select class="pill" data-setting="yv" aria-label="Translation for the Open in button" title="Translation for the “Open in” button">
-          ${YV.map(v => `<option value="${v.id}"${db.settings.yv === v.id ? ' selected' : ''}>↗ ${v.abbr}</option>`).join('')}
-          ${db.settings.yv === 'custom' ? `<option value="custom" selected>↗ Other</option>` : ''}
-        </select>
         ${it.reader ? `<span class="pill reader">${icon('user')}${esc(it.reader)}</span>` : ''}
       </div>
       ${inline !== 'off' ? `<div class="scripture" id="scripture"><div class="sk"><i></i><i style="width:92%"></i><i style="width:96%"></i><i style="width:60%"></i></div></div>` : ''}
-      ${it.note ? `<div class="note"><span class="lbl">${icon('pen')}Note</span><div class="md-out">${md(it.note)}</div></div>` : ''}
-      ${isLast && list.notes ? `<div class="note"><span class="lbl">${icon('pen')}Study notes</span><div class="md-out">${md(list.notes)}</div></div>` : ''}
+      ${it.note ? `<div class="note"><div class="md-out">${md(it.note)}</div></div>` : ''}
+      ${isLast && list.notes ? `<div class="note"><span class="lbl">${icon('pen')}Closing notes</span><div class="md-out">${md(list.notes)}</div></div>` : ''}
     </article>
 
     <nav class="dock">
@@ -1348,6 +1348,11 @@ function viewPresent(list, idx) {
           <button class="jump${i === idx ? ' on' : ''}" data-act="goto" data-idx="${i}">
             <span class="jn">${pad(i + 1)}</span><b>${esc(label(x.ref, true))}</b>${x.reader ? `<span class="muted">${esc(x.reader)}</span>` : ''}
           </button>`).join('')}
+        <h3>Open on Bible.com in</h3>
+        <select class="sheet-select" data-setting="yv" aria-label="Translation to open on Bible.com">
+          ${YV.map(v => `<option value="${v.id}"${db.settings.yv === v.id ? ' selected' : ''}>${v.abbr}</option>`).join('')}
+          ${db.settings.yv === 'custom' ? `<option value="custom" selected>Other</option>` : ''}
+        </select>
       </div>
     </div>
   </div>`;
